@@ -23,7 +23,7 @@ export class AuthController {
   @ApiBody({ type: RegisterDto })
   @ApiResponse({ status: HttpStatus.CREATED, type: RegisterResponseDto })
   async register(@Body() body: RegisterDto): Promise<RegisterResponseDto> {
-    const { userId } = await this.registerHandler.execute(
+    await this.registerHandler.execute(
       new RegisterCommand(
         body.email,
         body.password,
@@ -41,7 +41,7 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: HttpStatus.OK, type: LoginResponseDto })
   async login(@Body() body: LoginDto): Promise<LoginResponseDto> {
-    const { token } = await this.loginHandler.excute(
+    const { token } = await this.loginHandler.execute(
       new LoginCommand(body.email, body.password),
     );
 

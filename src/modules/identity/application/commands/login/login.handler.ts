@@ -2,8 +2,11 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { IDENTITY_REPOSITORY } from '../../identity-repository.token';
 import type { IdentityRepository } from 'src/modules/identity/domain/repositories/identity.repository';
 import { LoginCommand } from './login.command';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import {
+  assertPasswordMatchesStored,
+  parseEmail,
+} from '../../parse-identity-value-objects';
 
 @Injectable()
 export class LoginHandler {
@@ -13,19 +16,14 @@ export class LoginHandler {
     private readonly jwtService: JwtService,
   ) {}
 
-  async excute(command: LoginCommand): Promise<{ token: string }> {
-    const user = await this.identityRepository.findByEmail(command.email);
+  async execute(command: LoginCommand): Promise<{ token: string }> {
+    const email = parseEmail(command.email);
+    const user = await this.identityRepository.findByEmail(email.value);
 
     if (!user)
       throw new BadRequestException('The email address does not exist.');
 
-    const isMatch = await bcrypt.compare(command.password, user.password);
-
-    if (!isMatch) {
-      throw new BadRequestException(
-        'The password you just entered is incorrect.',
-      );
-    }
+    await assertPasswordMatchesStored(command.password, user.password);
 
     const payload = {
       userId: user.userId,

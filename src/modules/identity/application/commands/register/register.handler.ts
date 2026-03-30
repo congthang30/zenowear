@@ -1,11 +1,16 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import type { IdentityRepository } from 'src/modules/identity/domain/repositories/identity.repository';
 import { AccountStatus } from 'src/modules/identity/domain/enum/account-status.enum';
 import { RoleAccount } from 'src/modules/identity/domain/enum/role.enum';
 import type { UserRepository } from 'src/modules/user/domain/repositories/user.repository';
 import { USER_REPOSITORY } from 'src/modules/user/application/user-repository.token';
 import { IDENTITY_REPOSITORY } from '../../identity-repository.token';
+import {
+  parseDateOfBirth,
+  parseEmail,
+  parseFullName,
+  parsePassword,
+} from '../../parse-identity-value-objects';
 import { RegisterCommand } from './register.command';
 
 @Injectable()
@@ -22,8 +27,13 @@ export class RegisterHandler {
       throw new BadRequestException('Passwords do not match.');
     }
 
+    const email = parseEmail(command.email);
+    const fullName = parseFullName(command.fullName);
+    const password = await parsePassword(command.password);
+    const dateOfBirth = await parseDateOfBirth(command.dateOfBirth);
+
     const existingEmail = await this.identityRepository.findByEmail(
-      command.email,
+      email.value,
     );
 
     if (existingEmail) {
@@ -32,19 +42,17 @@ export class RegisterHandler {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(command.password, 12);
-
     const user = await this.userRepository.create({
-      fullName: command.fullName,
-      dateOfBirth: command.dateOfBirth,
+      fullName: fullName.value,
+      dateOfBirth: dateOfBirth.value,
     });
 
     const userId = user._id!.toString();
 
     await this.identityRepository.create({
       userId,
-      email: command.email,
-      password: hashedPassword,
+      email: email.value,
+      password: password.value,
       accountStatus: AccountStatus.ACTIVE,
       failedLoginCount: 0,
       role: RoleAccount.CUSTOMER,
