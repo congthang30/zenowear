@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { UserDocument } from './user.orm-entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { UserRepository } from '../../domain/repositories/user.repository';
+import { UserProfile } from '../../domain/entities/user-profile.entity';
+import { UserDocument } from './user.orm-entity';
+import { UserMapper } from './user.mapper';
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
@@ -11,23 +13,17 @@ export class UserRepositoryImpl implements UserRepository {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async findByUserId(userId: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ _id: userId }).exec();
+  async findByUserId(userId: string): Promise<UserProfile | null> {
+    const doc = await this.userModel.findById(userId).exec();
+    return doc ? UserMapper.toDomain(doc) : null;
   }
 
-  async save(user: UserDocument): Promise<void> {
-    if (user._id == null) {
-      throw new NotFoundException(`Không tìm thấy user`);
-    }
+  async save(user: UserProfile): Promise<void> {
+    const id = user.assertId();
+    const payload = UserMapper.toPersistence(user);
     const result = await this.userModel.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          fullName: user.fullName,
-          avatar: user.avatar,
-          dateOfBirth: user.dateOfBirth,
-        },
-      },
+      { _id: new Types.ObjectId(id) },
+      { $set: payload },
     );
 
     if (result.matchedCount === 0) {
@@ -35,11 +31,8 @@ export class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  async create(user: UserDocument): Promise<UserDocument> {
-    return this.userModel.create({
-      fullName: user.fullName,
-      avatar: user.avatar,
-      dateOfBirth: user.dateOfBirth,
-    });
+  async create(user: UserProfile): Promise<UserProfile> {
+    const doc = await this.userModel.create(UserMapper.toPersistence(user));
+    return UserMapper.toDomain(doc);
   }
 }

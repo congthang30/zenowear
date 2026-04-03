@@ -1,5 +1,18 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RegisterDto } from '../../application/dtos/register.dto';
 import { RegisterResponseDto } from '../../application/dtos/register-response.dto';
 import { RegisterCommand } from '../../application/commands/register/register.command';
@@ -8,6 +21,12 @@ import { LoginDto } from '../../application/dtos/login.dto';
 import { LoginResponseDto } from '../../application/dtos/login-reponse.dto';
 import { LoginHandler } from '../../application/commands/login/login.handler';
 import { LoginCommand } from '../../application/commands/login/login.command';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ChangePasswordDto } from '../../application/dtos/change-password.dto';
+import type { JwtAccessPayload } from 'src/common/strategies/jwt.strategy';
+import { ChangeMyPasswordHandler } from '../../application/commands/change-my-password/change-my-password.handler';
+import { ChangeMyPasswordCommand } from '../../application/commands/change-my-password/change-my-password.command';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -15,6 +34,7 @@ export class AuthController {
   constructor(
     private readonly registerHandler: RegisterHandler,
     private readonly loginHandler: LoginHandler,
+    private readonly changePasswordHandler: ChangeMyPasswordHandler,
   ) {}
 
   @Post('register')
@@ -46,5 +66,26 @@ export class AuthController {
     );
 
     return { message: 'Đăng nhập thành công', token };
+  }
+
+  @Post('me/password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cập nhật mật khẩu của user đang đăng nhập (JWT)' })
+  async changePassword(
+    @CurrentUser() user: JwtAccessPayload,
+    @Body() body: ChangePasswordDto,
+  ) {
+    await this.changePasswordHandler.execute(
+      new ChangeMyPasswordCommand(
+        user.userId,
+        body.password,
+        body.newPassword,
+        body.reNewPassword,
+      ),
+    );
+    return {
+      message: 'Password changed successfully',
+    };
   }
 }

@@ -1,7 +1,7 @@
-import { UserDocument } from '../../infrastructure/persistence/user.orm-entity';
+import { UserProfile } from '../entities/user-profile.entity';
 
 export interface UserRepository {
-  findByUserId(userId: string): Promise<UserDocument | null>;
-  save(user: UserDocument): Promise<void>;
-  create(user: UserDocument): Promise<UserDocument>;
+  findByUserId(userId: string): Promise<UserProfile | null>;
+  save(user: UserProfile): Promise<void>;
+  create(user: UserProfile): Promise<UserProfile>;
 }

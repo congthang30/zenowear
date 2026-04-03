@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { GetMyProfileHandler } from './application/queries/get-my-profile/get-my-profile.handler';
+import { AuthJwtModule } from '../../common/auth-jwt.module';
 import { UpdateProfileHandler } from './application/commands/update-profile/update-profile.handler';
+import { GetMyProfileHandler } from './application/queries/get-my-profile/get-my-profile.handler';
 import { USER_REPOSITORY } from './application/user-repository.token';
 import { UserRepositoryImpl } from './infrastructure/persistence/user.repository.impl';
 import {
@@ -15,6 +16,7 @@ import { UserProfileController } from './presentation/controllers/user-profile.c
     MongooseModule.forFeature([
       { name: UserDocument.name, schema: UserSchema },
     ]),
+    AuthJwtModule,
   ],
   controllers: [UserProfileController],
   providers: [
@@ -23,8 +25,8 @@ import { UserProfileController } from './presentation/controllers/user-profile.c
       provide: USER_REPOSITORY,
       useExisting: UserRepositoryImpl,
     },
-    GetMyProfileHandler,
     UpdateProfileHandler,
+    GetMyProfileHandler,
   ],
   exports: [
     MongooseModule,

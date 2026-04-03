@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-import type { SignOptions } from 'jsonwebtoken';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuthJwtModule } from '../../common/auth-jwt.module';
 import { UserModule } from '../user/user.module';
 import { IDENTITY_REPOSITORY } from './application/identity-repository.token';
 import { RegisterHandler } from './application/commands/register/register.handler';
@@ -13,23 +11,14 @@ import {
   IdentitySchema,
 } from './infrastructure/persistence/identity.orm-entity';
 import { LoginHandler } from './application/commands/login/login.handler';
+import { ChangeMyPasswordHandler } from './application/commands/change-my-password/change-my-password.handler';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: IdentityDocument.name, schema: IdentitySchema },
     ]),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService): JwtModuleOptions => ({
-        secret: config.getOrThrow<string>('jwt.secret'),
-        signOptions: {
-          expiresIn: (config.get<string>('jwt.expiresIn') ??
-            '7d') as SignOptions['expiresIn'],
-        },
-      }),
-    }),
+    AuthJwtModule,
     UserModule,
   ],
   controllers: [AuthController],
@@ -41,6 +30,7 @@ import { LoginHandler } from './application/commands/login/login.handler';
     },
     RegisterHandler,
     LoginHandler,
+    ChangeMyPasswordHandler,
   ],
   exports: [IdentityRepositoryImpl, MongooseModule],
 })

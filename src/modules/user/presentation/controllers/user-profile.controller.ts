@@ -4,20 +4,20 @@ import {
   Get,
   NotFoundException,
   Param,
-  ParseUUIDPipe,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { JwtAccessPayload } from 'src/common/strategies/jwt.strategy';
 import { UpdateUserDto } from '../../application/dtos/update-profile.dto';
 import { UpdateProfileCommand } from '../../application/commands/update-profile/update-profile.command';
 import { UpdateProfileHandler } from '../../application/commands/update-profile/update-profile.handler';
-import { GetMyProfileQuery } from '../../application/queries/get-my-profile/get-my-profile.query';
 import { GetMyProfileHandler } from '../../application/queries/get-my-profile/get-my-profile.handler';
+import { GetMyProfileQuery } from '../../application/queries/get-my-profile/get-my-profile.query';
+import { UserResponseDto } from '../../application/dtos/user-profile-response.dto';
 
-/**
- * Sau này có JWT: lấy userId từ token thay vì @Param — path có thể đổi thành /me/profile.
- * Ví dụ này dùng :userId để gọi thử không cần auth.
- */
 @ApiTags('User profile')
 @Controller('users')
 export class UserProfileController {
@@ -26,29 +26,34 @@ export class UserProfileController {
     private readonly updateProfileHandler: UpdateProfileHandler,
   ) {}
 
-  @Get(':userId/profile')
-  @ApiOperation({
-    summary: 'Lấy profile theo userId (ví dụ “my” khi client biết id của mình)',
-  })
-  async getProfile(@Param('userId') userId: string) {
-    const result = await this.getMyProfileHandler.execute(
-      new GetMyProfileQuery(userId),
-    );
+  @Get('me/profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy profile của user đang đăng nhập (JWT)' })
+  async getMyProfile(
+    @CurrentUser() user: JwtAccessPayload,
+  ): Promise<UserResponseDto> {
+    const result: UserResponseDto | null =
+      await this.getMyProfileHandler.execute(
+        new GetMyProfileQuery(user.userId),
+      );
     if (!result) {
-      throw new NotFoundException(`Không tìm thấy user: ${userId}`);
+      throw new NotFoundException(`Không tìm thấy user: ${user.userId}`);
     }
     return result;
   }
 
-  @Patch(':userId/profile')
-  @ApiOperation({ summary: 'Cập nhật profile (chỉ user đã tồn tại)' })
-  async updateProfile(
-    @Param('userId') userId: string,
+  @Patch('me/profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cập nhật profile của user đang đăng nhập (JWT)' })
+  async updateMyProfile(
+    @CurrentUser() user: JwtAccessPayload,
     @Body() body: UpdateUserDto,
   ) {
     await this.updateProfileHandler.execute(
       new UpdateProfileCommand(
-        userId,
+        user.userId,
         body.fullName,
         body.dateOfBirth,
         body.avatar,

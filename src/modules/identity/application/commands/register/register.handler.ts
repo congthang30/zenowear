@@ -1,8 +1,9 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type { IdentityRepository } from 'src/modules/identity/domain/repositories/identity.repository';
-import { AccountStatus } from 'src/modules/identity/domain/enum/account-status.enum';
+import { IdentityCredential } from 'src/modules/identity/domain/entities/identity-credential.entity';
 import { RoleAccount } from 'src/modules/identity/domain/enum/role.enum';
 import type { UserRepository } from 'src/modules/user/domain/repositories/user.repository';
+import { UserProfile } from 'src/modules/user/domain/entities/user-profile.entity';
 import { USER_REPOSITORY } from 'src/modules/user/application/user-repository.token';
 import { IDENTITY_REPOSITORY } from '../../identity-repository.token';
 import {
@@ -29,34 +30,29 @@ export class RegisterHandler {
 
     const email = parseEmail(command.email);
     const fullName = parseFullName(command.fullName);
-    const password = await parsePassword(command.password);
-    const dateOfBirth = await parseDateOfBirth(command.dateOfBirth);
+    const hashedPassword = await parsePassword(command.password);
+    const dateOfBirth = parseDateOfBirth(command.dateOfBirth);
 
-    const existingEmail = await this.identityRepository.findByEmail(
-      email.value,
-    );
+    const existing = await this.identityRepository.findByEmail(email.value);
 
-    if (existingEmail) {
+    if (existing) {
       throw new BadRequestException(
         'The email address already exists on another account.',
       );
     }
 
-    const user = await this.userRepository.create({
-      fullName: fullName.value,
-      dateOfBirth: dateOfBirth.value,
-    });
+    const profile = UserProfile.newForRegistration(fullName, dateOfBirth);
+    const savedProfile = await this.userRepository.create(profile);
+    const userId = savedProfile.assertId();
 
-    const userId = user._id!.toString();
-
-    await this.identityRepository.create({
+    const credential = IdentityCredential.createForNewUser({
       userId,
-      email: email.value,
-      password: password.value,
-      accountStatus: AccountStatus.ACTIVE,
-      failedLoginCount: 0,
+      email,
+      hashedPassword,
       role: RoleAccount.CUSTOMER,
     });
+
+    await this.identityRepository.create(credential);
 
     return { userId };
   }

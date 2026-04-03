@@ -36,29 +36,6 @@ export async function parsePassword(raw: string): Promise<Password> {
   }
 }
 
-export async function assertPasswordMatchesStored(
-  plainFromUser: string,
-  storedHash: string,
-): Promise<void> {
-  try {
-    const stored = Password.fromHash(storedHash);
-    const ok = await stored.compare(plainFromUser);
-    if (!ok) {
-      throw new BadRequestException(
-        'The password you just entered is incorrect.',
-      );
-    }
-  } catch (e) {
-    if (e instanceof BadRequestException) {
-      throw e;
-    }
-    if (e instanceof InvalidPasswordError) {
-      throw new BadRequestException(e.message);
-    }
-    throw e;
-  }
-}
-
 export function parseFullName(raw: string): FullName {
   try {
     return FullName.create(raw);
