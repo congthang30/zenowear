@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { IdentityModule } from './modules/identity/identity.module';
 import { UserModule } from './modules/user/user.module';
 import jwtConfig from './config/jwt.config';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import jwtConfig from './config/jwt.config';
     }),
     UserModule,
     IdentityModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [],

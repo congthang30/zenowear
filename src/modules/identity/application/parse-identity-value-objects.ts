@@ -24,7 +24,6 @@ export function parseEmail(raw: string): Email {
   }
 }
 
-/** Đăng ký: validate + hash → Password */
 export async function parsePassword(raw: string): Promise<Password> {
   try {
     return await Password.hashFromPlain(raw);

@@ -1,7 +1,3 @@
-/**
- * Value object: email không có identity riêng, hai email cùng chuỗi chuẩn hóa là "cùng một" email.
- * Domain giữ invariant (định dạng + normalize); tầng HTTP vẫn có thể validate lại bằng DTO.
- */
 export class InvalidEmailError extends Error {
   constructor(message = 'Invalid email address.') {
     super(message);
