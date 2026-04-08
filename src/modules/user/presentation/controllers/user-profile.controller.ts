@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   NotFoundException,
-  Param,
   Patch,
   UseGuards,
 } from '@nestjs/common';
@@ -26,7 +25,7 @@ export class UserProfileController {
     private readonly updateProfileHandler: UpdateProfileHandler,
   ) {}
 
-  @Get('me/profile')
+  @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy profile của user đang đăng nhập (JWT)' })
@@ -43,7 +42,7 @@ export class UserProfileController {
     return result;
   }
 
-  @Patch('me/profile')
+  @Patch('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật profile của user đang đăng nhập (JWT)' })

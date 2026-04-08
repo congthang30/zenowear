@@ -16,12 +16,12 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('Category')
-@Controller('category')
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly createCategoryHandler: CreateCategoryHandler) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Post('categories')
+  @Post()
   @Roles('ADMIN')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Tạo danh mục mới' })
