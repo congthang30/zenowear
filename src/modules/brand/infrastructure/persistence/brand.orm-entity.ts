@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { BrandStatus } from '../../domain/enum/brand-status.enum';
 
-@Schema({ collection: 'brands', timestamps: true })
+@Schema({ collection: 'Brand', timestamps: true })
 export class BrandDocument {
   _id: Types.ObjectId;
 
