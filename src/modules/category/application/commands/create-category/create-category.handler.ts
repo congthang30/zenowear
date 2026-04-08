@@ -3,7 +3,7 @@ import { CATEGORY_REPOSITORY } from '../../category-repository.token';
 import type { CategoryRepository } from 'src/modules/category/domain/repositories/category.repository';
 import { CreateCategoryCommand } from './create-category.command';
 import { parseCategoryName } from '../../parse-category-value-objects';
-import { Category } from 'src/modules/category/domain/entities/category-credential.entity';
+import { Category } from 'src/modules/category/domain/entities/category.entity';
 
 @Injectable()
 export class CreateCategoryHandler {

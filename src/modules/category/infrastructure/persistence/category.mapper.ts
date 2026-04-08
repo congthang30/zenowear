@@ -1,4 +1,4 @@
-import { Category } from '../../domain/entities/category-credential.entity';
+import { Category } from '../../domain/entities/category.entity';
 import { CategoryStatus } from '../../domain/enum/category-status.enum';
 import { CategoryName } from '../../domain/value-objects/category-name.vo';
 import { CategoryDocument } from './category.orm-entity';

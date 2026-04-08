@@ -1,13 +1,13 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { BrandStatus } from '../../domain/enum/brand-status.enum';
 
-@Schema({ collection: 'Category', timestamps: true })
-export class CategoryDocument {
+@Schema({ collection: 'brands', timestamps: true })
+export class BrandDocument {
   _id: Types.ObjectId;
 
   @Prop({ required: true })
-  categoryName: string;
+  brandName: string;
 
   @Prop({
     type: String,
@@ -15,5 +15,7 @@ export class CategoryDocument {
     default: BrandStatus.ACTIVE,
     required: true,
   })
-  categoryStatus: BrandStatus;
+  brandStatus: BrandStatus;
 }
+
+export const BrandSchema = SchemaFactory.createForClass(BrandDocument);

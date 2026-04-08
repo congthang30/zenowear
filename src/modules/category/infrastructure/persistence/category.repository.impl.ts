@@ -3,8 +3,8 @@ import { CategoryRepository } from '../../domain/repositories/category.repositor
 import { InjectModel } from '@nestjs/mongoose';
 import { CategoryDocument } from './category.orm-entity';
 import { Model } from 'mongoose';
-import { Category } from '../../domain/entities/category-credential.entity';
 import { CategoryMapper } from './category.mapper';
+import { Category } from '../../domain/entities/category.entity';
 
 @Injectable()
 export class CategoryRepositoryImpl implements CategoryRepository {

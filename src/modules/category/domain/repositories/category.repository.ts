@@ -1,4 +1,4 @@
-import { Category } from '../entities/category-credential.entity';
+import { Category } from '../entities/category.entity';
 
 export interface CategoryRepository {
   findById(id: string): Promise<Category | null>;

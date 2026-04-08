@@ -7,6 +7,7 @@ import { IdentityModule } from './modules/identity/identity.module';
 import { UserModule } from './modules/user/user.module';
 import jwtConfig from './config/jwt.config';
 import { CategoryModule } from './modules/category/category.module';
+import { BrandModule } from './modules/brand/brand.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CategoryModule } from './modules/category/category.module';
     UserModule,
     IdentityModule,
     CategoryModule,
+    BrandModule,
   ],
   controllers: [],
   providers: [],

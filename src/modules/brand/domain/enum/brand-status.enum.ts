@@ -1,6 +1,6 @@
 export enum BrandStatus {
-  DRAFT,
-  ACTIVE,
-  INACTIVE,
-  ARCHIVED,
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ARCHIVED = 'ARCHIVED',
 }
