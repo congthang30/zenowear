@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { IDENTITY_REPOSITORY } from '../../identity-repository.token';
-import type { IdentityRepository } from 'src/modules/identity/domain/repositories/identity.repository';
+import type { IdentityRepository } from '../../../domain/repositories/identity.repository';
 import { LoginCommand } from './login.command';
 import { JwtService } from '@nestjs/jwt';
 import { parseEmail } from '../../parse-identity-value-objects';

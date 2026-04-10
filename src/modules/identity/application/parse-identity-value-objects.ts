@@ -11,7 +11,7 @@ import {
 import {
   DateOfBirth,
   InvalidDateOfBirthError,
-} from 'src/modules/user/domain/value-objects/date-of-birth.vo';
+} from '../../user/domain/value-objects/date-of-birth.vo';
 
 export function parseEmail(raw: string): Email {
   try {

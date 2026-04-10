@@ -3,7 +3,7 @@ import {
   CategoryDocument,
   CategorySchema,
 } from './infrastructure/persistence/category.orm-entity';
-import { AuthJwtModule } from 'src/common/auth-jwt.module';
+import { AuthJwtModule } from '../../common/auth-jwt.module';
 import { CreateCategoryHandler } from './application/commands/create-category/create-category.handler';
 import { CategoryRepositoryImpl } from './infrastructure/persistence/category.repository.impl';
 import { MongooseModule } from '@nestjs/mongoose';

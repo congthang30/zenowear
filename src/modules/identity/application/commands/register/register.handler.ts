@@ -1,10 +1,10 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import type { IdentityRepository } from 'src/modules/identity/domain/repositories/identity.repository';
-import { IdentityCredential } from 'src/modules/identity/domain/entities/identity-credential.entity';
-import { RoleAccount } from 'src/modules/identity/domain/enum/role.enum';
-import type { UserRepository } from 'src/modules/user/domain/repositories/user.repository';
-import { UserProfile } from 'src/modules/user/domain/entities/user-profile.entity';
-import { USER_REPOSITORY } from 'src/modules/user/application/user-repository.token';
+import type { IdentityRepository } from '../../../domain/repositories/identity.repository';
+import { IdentityCredential } from '../../../domain/entities/identity-credential.entity';
+import { RoleAccount } from '../../../domain/enum/role.enum';
+import type { UserRepository } from '../../../../user/domain/repositories/user.repository';
+import { UserProfile } from '../../../../user/domain/entities/user-profile.entity';
+import { USER_REPOSITORY } from '../../../../user/application/user-repository.token';
 import { IDENTITY_REPOSITORY } from '../../identity-repository.token';
 import {
   parseDateOfBirth,

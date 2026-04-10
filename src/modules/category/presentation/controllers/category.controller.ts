@@ -11,9 +11,9 @@ import { CreateCategoryHandler } from '../../application/commands/create-categor
 import { CreateCategoryDto } from '../../application/dtos/createCategory.dto';
 import { CreateCategoryResponseDto } from '../../application/dtos/createCategory-reponse.dto';
 import { CreateCategoryCommand } from '../../application/commands/create-category/create-category.command';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../common/guards/roles.guard';
+import { Roles } from '../../../../common/decorators/roles.decorator';
 
 @ApiTags('Category')
 @Controller('categories')

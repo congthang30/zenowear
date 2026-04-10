@@ -7,9 +7,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { JwtAccessPayload } from 'src/common/strategies/jwt.strategy';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import type { JwtAccessPayload } from '../../../../common/strategies/jwt.strategy';
 import { UpdateUserDto } from '../../application/dtos/update-profile.dto';
 import { UpdateProfileCommand } from '../../application/commands/update-profile/update-profile.command';
 import { UpdateProfileHandler } from '../../application/commands/update-profile/update-profile.handler';

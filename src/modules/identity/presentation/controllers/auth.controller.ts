@@ -21,10 +21,10 @@ import { LoginDto } from '../../application/dtos/login.dto';
 import { LoginResponseDto } from '../../application/dtos/login-reponse.dto';
 import { LoginHandler } from '../../application/commands/login/login.handler';
 import { LoginCommand } from '../../application/commands/login/login.command';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { ChangePasswordDto } from '../../application/dtos/change-password.dto';
-import type { JwtAccessPayload } from 'src/common/strategies/jwt.strategy';
+import type { JwtAccessPayload } from '../../../../common/strategies/jwt.strategy';
 import { ChangeMyPasswordHandler } from '../../application/commands/change-my-password/change-my-password.handler';
 import { ChangeMyPasswordCommand } from '../../application/commands/change-my-password/change-my-password.command';
 

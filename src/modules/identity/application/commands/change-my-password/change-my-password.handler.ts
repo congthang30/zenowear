@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { ChangeMyPasswordCommand } from './change-my-password.command';
 import { IDENTITY_REPOSITORY } from '../../identity-repository.token';
-import type { IdentityRepository } from 'src/modules/identity/domain/repositories/identity.repository';
-import { Password } from 'src/modules/identity/domain/value-objects/password.vo';
+import type { IdentityRepository } from '../../../domain/repositories/identity.repository';
+import { Password } from '../../../domain/value-objects/password.vo';
 
 @Injectable()
 export class ChangeMyPasswordHandler {

@@ -1,4 +1,4 @@
-import { BrandStatus } from 'src/modules/brand/domain/enum/brand-status.enum';
+import { BrandStatus } from '../../../domain/enum/brand-status.enum';
 
 export class CreateBrandCommand {
   constructor(

@@ -7,9 +7,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../common/guards/roles.guard';
+import { Roles } from '../../../../common/decorators/roles.decorator';
 import { CreateBrandHandler } from '../../application/commands/create-brand/create-category.handler';
 import { CreateBrandDto } from '../../application/dtos/createBrand.dto';
 import { CreateBrandResponseDto } from '../../application/dtos/createBrand-reponse.dto';

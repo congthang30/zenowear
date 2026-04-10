@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { BRAND_REPOSITORY } from '../../category-repository.token';
 import { CreateBrandCommand } from './create-category.command';
-import type { BrandRepository } from 'src/modules/brand/domain/repositories/brand.repository';
-import { Brand } from 'src/modules/brand/domain/entities/brand.entity';
+import type { BrandRepository } from '../../../domain/repositories/brand.repository';
+import { Brand } from '../../../domain/entities/brand.entity';
 import { parseBrandName } from '../../parse-category-value-objects';
 
 @Injectable()

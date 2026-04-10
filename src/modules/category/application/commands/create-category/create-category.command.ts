@@ -1,4 +1,4 @@
-import { CategoryStatus } from 'src/modules/category/domain/enum/category-status.enum';
+import { CategoryStatus } from '../../../domain/enum/category-status.enum';
 
 export class CreateCategoryCommand {
   status: CategoryStatus;
