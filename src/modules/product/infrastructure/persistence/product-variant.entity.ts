@@ -8,11 +8,9 @@ export class ProductVariantDocument {
   @Prop({ type: Types.ObjectId, ref: 'Product', required: true, index: true })
   productId!: Types.ObjectId;
 
-  // mã nội bộ
   @Prop({ required: true, unique: true, index: true })
   sku!: string;
 
-  // size, color, ...
   @Prop({ type: Map, of: String })
   attributes?: Record<string, string>;
 
