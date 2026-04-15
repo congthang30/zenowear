@@ -9,6 +9,7 @@ import { GetMyCartHandler } from './application/queries/get-my-cart/get-my-cart.
 import { AddCartItemHandler } from './application/commands/add-cart-item/add-cart-item.handler';
 import { RemoveCartItemHandler } from './application/commands/remove-cart-item/remove-cart-item.handler';
 import { AdjustCartItemQuantityHandler } from './application/commands/adjust-cart-item-quantity/adjust-cart-item-quantity.handler';
+import { ChangeCartItemVariantHandler } from './application/commands/change-cart-item-variant/change-cart-item-variant.handler';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AdjustCartItemQuantityHandler } from './application/commands/adjust-car
     AddCartItemHandler,
     RemoveCartItemHandler,
     AdjustCartItemQuantityHandler,
+    ChangeCartItemVariantHandler,
   ],
   exports: [MongooseModule, CART_REPOSITORY],
 })

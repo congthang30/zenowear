@@ -79,6 +79,39 @@ export class Cart {
     existing.decrease(qty);
   }
 
+  changeItemVariant(
+    productId: string,
+    fromVariantId: string | undefined,
+    toVariantId: string | undefined,
+  ) {
+    if (fromVariantId === toVariantId) {
+      throw new Error('Biến thể đích trùng biến thể hiện tại');
+    }
+    const source = this._items.find((i) =>
+      i.isSameItem(productId, fromVariantId),
+    );
+    if (!source) {
+      throw new Error('Item not in cart');
+    }
+    const qty = source.quantity;
+    this.removeItem(productId, fromVariantId);
+
+    const target = this._items.find((i) =>
+      i.isSameItem(productId, toVariantId),
+    );
+    if (target) {
+      target.increase(qty);
+    } else {
+      this._items.push(
+        CartItem.create({
+          productId,
+          variantId: toVariantId,
+          quantity: qty,
+        }),
+      );
+    }
+  }
+
   get id() {
     return this._id;
   }

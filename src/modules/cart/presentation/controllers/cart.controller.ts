@@ -19,12 +19,15 @@ import {
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import type { JwtAccessPayload } from '../../../../common/strategies/jwt.strategy';
+import { ChangeCartItemVariantHandler } from '../../application/commands/change-cart-item-variant/change-cart-item-variant.handler';
+import { ChangeCartItemVariantCommand } from '../../application/commands/change-cart-item-variant/change-cart-item-variant.command';
 import { AddCartItemHandler } from '../../application/commands/add-cart-item/add-cart-item.handler';
 import { AddCartItemCommand } from '../../application/commands/add-cart-item/add-cart-item.command';
 import { AdjustCartItemQuantityHandler } from '../../application/commands/adjust-cart-item-quantity/adjust-cart-item-quantity.handler';
 import { AdjustCartItemQuantityCommand } from '../../application/commands/adjust-cart-item-quantity/adjust-cart-item-quantity.command';
 import { RemoveCartItemHandler } from '../../application/commands/remove-cart-item/remove-cart-item.handler';
 import { RemoveCartItemCommand } from '../../application/commands/remove-cart-item/remove-cart-item.command';
+import { ChangeCartItemVariantDto } from '../../application/dtos/change-cart-item-variant.dto';
 import { AddCartItemDto } from '../../application/dtos/add-cart-item.dto';
 import { AdjustCartItemQuantityDto } from '../../application/dtos/adjust-cart-item-quantity.dto';
 import { CartResponseDto } from '../../application/dtos/cart-response.dto';
@@ -42,6 +45,7 @@ export class CartController {
     private readonly addCartItemHandler: AddCartItemHandler,
     private readonly removeCartItemHandler: RemoveCartItemHandler,
     private readonly adjustCartItemQuantityHandler: AdjustCartItemQuantityHandler,
+    private readonly changeCartItemVariantHandler: ChangeCartItemVariantHandler,
   ) {}
 
   @Get()
@@ -104,6 +108,28 @@ export class CartController {
         body.productId,
         body.variantId,
         body.delta,
+      ),
+    );
+  }
+
+  @Patch('items/variant')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Đổi biến thể của dòng trong giỏ (gộp số lượng nếu dòng đích đã tồn tại)',
+  })
+  @ApiBody({ type: ChangeCartItemVariantDto })
+  @ApiResponse({ status: HttpStatus.OK, type: CartResponseDto })
+  async changeItemVariant(
+    @CurrentUser() user: JwtAccessPayload,
+    @Body() body: ChangeCartItemVariantDto,
+  ): Promise<CartResponseDto> {
+    return this.changeCartItemVariantHandler.execute(
+      new ChangeCartItemVariantCommand(
+        user.userId,
+        body.productId,
+        body.fromVariantId,
+        body.toVariantId,
       ),
     );
   }
