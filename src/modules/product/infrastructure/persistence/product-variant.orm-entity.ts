@@ -38,12 +38,14 @@ export class ProductVariantDocument {
   @Prop({ type: Number, default: 0, min: 0 })
   stock!: number;
 
-  // UI
   @Prop({ type: Boolean, default: false })
   isDefault!: boolean;
 
   @Prop([String])
   images?: string[];
+
+  @Prop()
+  deletedAt?: Date;
 }
 
 export const ProductVariantSchema = SchemaFactory.createForClass(

@@ -17,6 +17,7 @@ export class ProductVariantMapper {
       stock: Stock.reconstitute(doc.stock, 0),
       isDefault: doc.isDefault ?? false,
       images: doc.images || [],
+      deletedAt: doc.deletedAt,
     });
   }
 
@@ -29,6 +30,7 @@ export class ProductVariantMapper {
     stock: number;
     isDefault: boolean;
     images?: string[];
+    deletedAt?: Date;
   } {
     return {
       productId: entity.productId,
@@ -39,6 +41,7 @@ export class ProductVariantMapper {
       stock: entity.stock.available,
       isDefault: entity.isDefault,
       images: entity.images,
+      deletedAt: entity.deletedAt,
     };
   }
 }

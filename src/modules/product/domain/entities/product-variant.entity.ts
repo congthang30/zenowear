@@ -41,8 +41,19 @@ export class ProductVariant {
     this._deletedAt = props.deletedAt;
   }
 
-  static create(props: Omit<ProductVariantProps, 'id'>): ProductVariant {
-    return new ProductVariant(props);
+  private assertVariantRules() {
+    if (!this._attributes?.length) {
+      throw new Error('Biến thể phải có ít nhất một thuộc tính');
+    }
+    if (this._price.value > this._originalPrice.value) {
+      throw new Error('Giá bán phải nhỏ hơn hoặc bằng giá gốc');
+    }
+  }
+
+  static create(props: Omit<ProductVariantProps, 'id' | 'deletedAt'>): ProductVariant {
+    const v = new ProductVariant({ ...props, deletedAt: undefined });
+    v.assertVariantRules();
+    return v;
   }
 
   static reconstitute(props: ProductVariantProps): ProductVariant {
@@ -87,5 +98,34 @@ export class ProductVariant {
 
   get deletedAt(): Date | undefined {
     return this._deletedAt;
+  }
+
+  update(props: {
+    sku?: Sku;
+    attributes?: { key: string; value: string }[];
+    originalPrice?: OriginalPrice;
+    price?: Price;
+    stock?: Stock;
+    isDefault?: boolean;
+    images?: string[] | null;
+  }) {
+    if (props.sku !== undefined) this._sku = props.sku;
+    if (props.attributes !== undefined) {
+      if (!props.attributes.length) {
+        throw new Error('Biến thể phải có ít nhất một thuộc tính');
+      }
+      this._attributes = props.attributes;
+    }
+    if (props.originalPrice !== undefined) this._originalPrice = props.originalPrice;
+    if (props.price !== undefined) this._price = props.price;
+    if (props.stock !== undefined) this._stock = props.stock;
+    if (props.isDefault !== undefined) this._isDefault = props.isDefault;
+    if (props.images !== undefined) this._images = props.images ?? undefined;
+    this.assertVariantRules();
+  }
+
+
+  markDeleted() {
+    this._deletedAt = new Date();
   }
 }

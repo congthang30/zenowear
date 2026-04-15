@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProductVariantResponseDto {
   @ApiProperty()
@@ -80,6 +80,12 @@ export class ProductResponseDto {
 
   @ApiProperty()
   videoUrl?: string;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'null nếu chưa xóa mềm (catalog luôn null)',
+  })
+  deletedAt?: string | null;
 
   @ApiProperty({ type: [ProductVariantResponseDto] })
   variants?: ProductVariantResponseDto[];

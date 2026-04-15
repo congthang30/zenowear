@@ -6,6 +6,7 @@ import {
   ProductResponseDto,
   ProductVariantResponseDto,
 } from '../../dtos/product-response.dto';
+import { ProductStatus } from '../../../domain/enum/productStatus.enum';
 
 @Injectable()
 export class GetProductHandler {
@@ -16,10 +17,16 @@ export class GetProductHandler {
 
   async execute(query: GetProductQuery): Promise<ProductResponseDto> {
     const product = await this.productRepository.findById(query.id);
-    if (!product) throw new NotFoundException(`Product not found: ${query.id}`);
+    if (!product?.id) {
+      throw new NotFoundException(`Không tìm thấy sản phẩm: ${query.id}`);
+    }
+    if (product.deletedAt || product.status !== ProductStatus.ACTIVE) {
+      throw new NotFoundException(`Không tìm thấy sản phẩm: ${query.id}`);
+    }
 
     const variants = await this.productRepository.findVariantsByProductId(
       product.id!,
+      { includeDeleted: false },
     );
 
     const variantDtos: ProductVariantResponseDto[] = variants.map((v) => ({
@@ -52,6 +59,7 @@ export class GetProductHandler {
       categoryId: product.categoryId,
       images: product.images,
       videoUrl: product.videoUrl,
+      deletedAt: null,
       variants: variantDtos,
     };
   }

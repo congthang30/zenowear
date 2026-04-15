@@ -74,6 +74,7 @@ export class Product {
     description?: string;
     status?: ProductStatus;
     isFeatured?: boolean;
+    tags?: string[];
     images?: string[];
     videoUrl?: string;
     brandId: string;
@@ -91,7 +92,7 @@ export class Product {
       ratingAverage: 0,
       reviewCount: 0,
       ratingTotal: 0,
-      tags: [],
+      tags: props.tags ?? [],
       brandId: props.brandId,
       categoryId: props.categoryId,
       images: props.images,
@@ -145,6 +146,42 @@ export class Product {
 
   markDeleted() {
     this._deletedAt = new Date();
+  }
+
+  updateDetails(props: {
+    productName?: ProductName;
+    slug?: Slug;
+    barcode?: Barcode;
+    description?: string;
+    images?: string[];
+    videoUrl?: string | null;
+    brandId?: string;
+    categoryId?: string;
+    tags?: string[];
+  }) {
+    if (props.productName !== undefined) this._productName = props.productName;
+    if (props.slug !== undefined) this._slug = props.slug;
+    if (props.barcode !== undefined) this._barcode = props.barcode;
+    if (props.description !== undefined) this._description = props.description;
+    if (props.images !== undefined) this._images = props.images;
+    if (props.videoUrl !== undefined) this._videoUrl = props.videoUrl ?? undefined;
+    if (props.brandId !== undefined) this._brandId = props.brandId;
+    if (props.categoryId !== undefined) this._categoryId = props.categoryId;
+    if (props.tags !== undefined) this._tags = [...props.tags];
+  }
+
+  setFeatured(value: boolean) {
+    this._isFeatured = value;
+  }
+
+  applyStatus(status: ProductStatus) {
+    this._status = status;
+  }
+
+  /** Xóa mềm: không xóa DB, ẩn với user. */
+  softDelete() {
+    this._deletedAt = new Date();
+    this._status = ProductStatus.INACTIVE;
   }
 
   private validate() {

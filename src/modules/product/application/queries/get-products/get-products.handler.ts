@@ -16,9 +16,17 @@ export class GetProductsHandler {
 
   async execute(query: GetProductsQuery): Promise<PaginatedProductResponseDto> {
     const { page, limit } = query;
-    const skip = (page - 1) * limit;
 
-    const { data, total } = await this.productRepository.findAll(skip, limit);
+    const { data, total } = await this.productRepository.search({
+      page,
+      limit,
+      search: query.search,
+      brandId: query.brandId,
+      categoryId: query.categoryId,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      catalogOnly: query.catalogOnly,
+    });
 
     const productDtos: ProductResponseDto[] = data.map((product) => ({
       id: product.id!,
@@ -38,6 +46,7 @@ export class GetProductsHandler {
       categoryId: product.categoryId,
       images: product.images,
       videoUrl: product.videoUrl,
+      deletedAt: product.deletedAt?.toISOString() ?? null,
     }));
 
     return { data: productDtos, total };

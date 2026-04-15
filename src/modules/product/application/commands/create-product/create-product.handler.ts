@@ -23,6 +23,14 @@ import { CATEGORY_REPOSITORY } from '../../../../category/application/category-r
 import type { BrandRepository } from '../../../../brand/domain/repositories/brand.repository';
 import type { CategoryRepository } from '../../../../category/domain/repositories/category.repository';
 import { PRODUCT_REPOSITORY } from '../../product-repository.token';
+import { BrandStatus } from '../../../../brand/domain/enum/brand-status.enum';
+import { CategoryStatus } from '../../../../category/domain/enum/category-status.enum';
+import { ProductStatus } from '../../../domain/enum/productStatus.enum';
+import {
+  assertDistinctSkusInPayload,
+  assertExactlyOneDefaultVariant,
+  reconcileProductStatusFromVariants,
+} from '../../helpers/product-catalog-rules';
 
 @Injectable()
 export class CreateProductHandler {
@@ -38,47 +46,79 @@ export class CreateProductHandler {
   async execute(command: CreateProductCommand): Promise<string> {
     const brand = await this.brandRepository.findById(command.brandId);
     if (!brand) {
-      throw new NotFoundException(`Brand with ID ${command.brandId} not found`);
+      throw new NotFoundException(`Brand không tồn tại: ${command.brandId}`);
+    }
+    if (brand.status !== BrandStatus.ACTIVE) {
+      throw new BadRequestException('Brand phải đang ACTIVE');
     }
 
     const category = await this.categoryRepository.findById(command.categoryId);
     if (!category) {
       throw new NotFoundException(
-        `Category with ID ${command.categoryId} not found`,
+        `Category không tồn tại: ${command.categoryId}`,
       );
     }
+    if (category.status !== CategoryStatus.ACTIVE) {
+      throw new BadRequestException('Danh mục phải đang ACTIVE');
+    }
+
+    assertExactlyOneDefaultVariant(command.variants);
+    assertDistinctSkusInPayload(command.variants.map((v) => v.sku));
 
     try {
       const productName = parseProductName(command.productName);
       const barcode = parseBarcode(command.barcode);
-      const slugObj = parseSlug(command.productName);
-
-      const slugExists = await this.productRepository.existsBySlug(
-        slugObj.value,
-      );
-      if (slugExists) {
+      let slugObj = parseSlug(command.productName);
+      let tries = 0;
+      while (
+        (await this.productRepository.existsBySlug(slugObj.value)) &&
+        tries < 10
+      ) {
+        slugObj = parseSlug(
+          `${command.productName}-${Math.random().toString(36).slice(2, 8)}`,
+        );
+        tries++;
+      }
+      if (await this.productRepository.existsBySlug(slugObj.value)) {
         throw new ConflictException(
-          `Product slug "${slugObj.value}" already exists. Please choose a different name.`,
+          `Không tạo được slug unique cho "${command.productName}"`,
         );
       }
+
+      if (await this.productRepository.existsByBarcode(barcode.value)) {
+        throw new ConflictException(`Barcode "${barcode.value}" đã tồn tại`);
+      }
+
+      for (const v of command.variants) {
+        const sku = parseSku(v.sku);
+        if (await this.productRepository.existsBySku(sku.value)) {
+          throw new ConflictException(`SKU "${sku.value}" đã tồn tại`);
+        }
+      }
+
+      const allZero = command.variants.every((v) => v.stock === 0);
+      const initialStatus = allZero
+        ? ProductStatus.OUT_OF_STOCK
+        : ProductStatus.ACTIVE;
 
       const product = Product.createForNewProduct({
         productName,
         slug: slugObj,
         barcode,
         description: command.description,
+        status: initialStatus,
         brandId: command.brandId,
         categoryId: command.categoryId,
         images: command.images,
         videoUrl: command.videoUrl,
       });
 
-      return await this.productRepository.saveProductWithVariants(
+      const productId = await this.productRepository.saveProductWithVariants(
         product,
-        (productId) =>
+        (pid) =>
           command.variants.map((v) =>
             ProductVariant.create({
-              productId,
+              productId: pid,
               sku: parseSku(v.sku),
               attributes: v.attributes,
               originalPrice: parseOriginalPrice(v.originalPrice),
@@ -89,6 +129,18 @@ export class CreateProductHandler {
             }),
           ),
       );
+
+      const saved = await this.productRepository.findById(productId);
+      const vars = await this.productRepository.findVariantsByProductId(
+        productId,
+        { includeDeleted: false },
+      );
+      if (saved) {
+        reconcileProductStatusFromVariants(saved, vars);
+        await this.productRepository.save(saved);
+      }
+
+      return productId;
     } catch (error) {
       if (
         error instanceof ConflictException ||

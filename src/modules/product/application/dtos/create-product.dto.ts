@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsMongoId,
@@ -32,6 +33,7 @@ export class CreateVariantDto {
 
   @ApiProperty({ type: [CreateVariantAttributeDto] })
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateVariantAttributeDto)
   attributes!: CreateVariantAttributeDto[];
