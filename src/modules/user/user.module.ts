@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthJwtModule } from '../../common/auth-jwt.module';
+import { CloudinaryModule } from '../../common/cloudinary/cloudinary.module';
 import { UpdateProfileHandler } from './application/commands/update-profile/update-profile.handler';
 import { GetMyProfileHandler } from './application/queries/get-my-profile/get-my-profile.handler';
 import { USER_REPOSITORY } from './application/user-repository.token';
@@ -17,6 +18,7 @@ import { UserProfileController } from './presentation/controllers/user-profile.c
       { name: UserDocument.name, schema: UserSchema },
     ]),
     AuthJwtModule,
+    CloudinaryModule,
   ],
   controllers: [UserProfileController],
   providers: [

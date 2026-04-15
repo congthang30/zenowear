@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthJwtModule } from '../../common/auth-jwt.module';
+import { CloudinaryModule } from '../../common/cloudinary/cloudinary.module';
 
 import { ProductDocument, ProductSchema } from './infrastructure/persistence/product.orm-entity';
 import { ProductVariantDocument, ProductVariantSchema } from './infrastructure/persistence/product-variant.orm-entity';
@@ -20,6 +21,7 @@ import { PRODUCT_REPOSITORY } from './application/product-repository.token';
       { name: ProductVariantDocument.name, schema: ProductVariantSchema },
     ]),
     AuthJwtModule,
+    CloudinaryModule,
     BrandModule,
     CategoryModule,
   ],

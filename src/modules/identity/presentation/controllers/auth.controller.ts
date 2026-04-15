@@ -27,6 +27,7 @@ import { ChangePasswordDto } from '../../application/dtos/change-password.dto';
 import type { JwtAccessPayload } from '../../../../common/strategies/jwt.strategy';
 import { ChangeMyPasswordHandler } from '../../application/commands/change-my-password/change-my-password.handler';
 import { ChangeMyPasswordCommand } from '../../application/commands/change-my-password/change-my-password.command';
+import { LogoutResponseDto } from '../../application/dtos/logout-response.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -66,6 +67,20 @@ export class AuthController {
     );
 
     return { message: 'Đăng nhập thành công', token };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Đăng xuất',
+    description:
+      'Xác nhận user đang đăng nhập; client cần xóa access token. JWT stateless vẫn có hiệu lực đến khi hết hạn (chưa có denylist).',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: LogoutResponseDto })
+  async logout(): Promise<LogoutResponseDto> {
+    return { message: 'Đăng xuất thành công.' };
   }
 
   @Post('me/password')

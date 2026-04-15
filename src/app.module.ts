@@ -6,16 +6,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { IdentityModule } from './modules/identity/identity.module';
 import { UserModule } from './modules/user/user.module';
 import jwtConfig from './config/jwt.config';
+import cloudinaryConfig from './config/cloudinary.config';
 import { CategoryModule } from './modules/category/category.module';
 import { BrandModule } from './modules/brand/brand.module';
 import { ProductModule } from './modules/product/product.module';
 import { CartModule } from './modules/cart/cart.module';
+import { MediaModule } from './modules/media/media.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig],
+      load: [appConfig, databaseConfig, jwtConfig, cloudinaryConfig],
     }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
@@ -29,6 +31,7 @@ import { CartModule } from './modules/cart/cart.module';
     BrandModule,
     ProductModule,
     CartModule,
+    MediaModule,
   ],
   controllers: [],
   providers: [],
