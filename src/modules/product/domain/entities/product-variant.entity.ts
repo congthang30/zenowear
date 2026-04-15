@@ -49,7 +49,6 @@ export class ProductVariant {
     return new ProductVariant(props);
   }
 
-  // Getters
   get id(): string | undefined {
     return this._id;
   }

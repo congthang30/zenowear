@@ -9,6 +9,7 @@ import jwtConfig from './config/jwt.config';
 import { CategoryModule } from './modules/category/category.module';
 import { BrandModule } from './modules/brand/brand.module';
 import { ProductModule } from './modules/product/product.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ProductModule } from './modules/product/product.module';
     CategoryModule,
     BrandModule,
     ProductModule,
+    CartModule,
   ],
   controllers: [],
   providers: [],
