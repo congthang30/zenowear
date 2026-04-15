@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import type { ClientSession, Connection } from 'mongoose';
 import { Model, Types } from 'mongoose';
 import { Product } from '../../domain/entities/product.entity';
 import { ProductVariant } from '../../domain/entities/product-variant.entity';
@@ -12,46 +13,42 @@ import { ProductVariantMapper } from './product-variant.mapper';
 @Injectable()
 export class ProductRepositoryImpl implements IProductRepository {
   constructor(
+    @InjectConnection() private readonly connection: Connection,
     @InjectModel(ProductDocument.name)
     private readonly productModel: Model<ProductDocument>,
     @InjectModel(ProductVariantDocument.name)
     private readonly productVariantModel: Model<ProductVariantDocument>,
   ) {}
 
-  async save(product: Product): Promise<void> {
+  private async persistProduct(
+    product: Product,
+    session?: ClientSession,
+  ): Promise<string> {
     const data = ProductMapper.toPersistence(product);
-    const id = product.id ? new Types.ObjectId(product.id) : new Types.ObjectId();
-    
+    const id = product.id
+      ? new Types.ObjectId(product.id)
+      : new Types.ObjectId();
+
     await this.productModel.updateOne(
       { _id: id },
       { $set: data, $setOnInsert: { _id: id } },
-      { upsert: true }
+      { upsert: true, ...(session ? { session } : {}) },
     );
+
+    return id.toString();
   }
 
-  async saveVariant(variant: ProductVariant): Promise<void> {
-    const data = ProductVariantMapper.toPersistence(variant);
-    const id = variant.id ? new Types.ObjectId(variant.id) : new Types.ObjectId();
-
-    await this.productVariantModel.updateOne(
-      { _id: id },
-      {
-        $set: {
-          ...data,
-          productId: new Types.ObjectId(data.productId),
-        },
-        $setOnInsert: { _id: id },
-      },
-      { upsert: true },
-    );
-  }
-
-  async saveVariants(variants: ProductVariant[]): Promise<void> {
+  private async persistVariants(
+    variants: ProductVariant[],
+    session?: ClientSession,
+  ): Promise<void> {
     if (variants.length === 0) return;
 
     const operations = variants.map((variant) => {
       const data = ProductVariantMapper.toPersistence(variant);
-      const id = variant.id ? new Types.ObjectId(variant.id) : new Types.ObjectId();
+      const id = variant.id
+        ? new Types.ObjectId(variant.id)
+        : new Types.ObjectId();
 
       return {
         updateOne: {
@@ -68,7 +65,54 @@ export class ProductRepositoryImpl implements IProductRepository {
       };
     });
 
-    await this.productVariantModel.bulkWrite(operations);
+    await this.productVariantModel.bulkWrite(operations, {
+      ...(session ? { session } : {}),
+    });
+  }
+
+  async save(product: Product): Promise<string> {
+    return this.persistProduct(product);
+  }
+
+  async saveProductWithVariants(
+    product: Product,
+    buildVariants: (productId: string) => ProductVariant[],
+  ): Promise<string> {
+    const session = await this.connection.startSession();
+    let productId = '';
+    try {
+      await session.withTransaction(async () => {
+        productId = await this.persistProduct(product, session);
+        const variants = buildVariants(productId);
+        await this.persistVariants(variants, session);
+      });
+      return productId;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async saveVariant(variant: ProductVariant): Promise<void> {
+    const data = ProductVariantMapper.toPersistence(variant);
+    const id = variant.id
+      ? new Types.ObjectId(variant.id)
+      : new Types.ObjectId();
+
+    await this.productVariantModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          ...data,
+          productId: new Types.ObjectId(data.productId),
+        },
+        $setOnInsert: { _id: id },
+      },
+      { upsert: true },
+    );
+  }
+
+  async saveVariants(variants: ProductVariant[]): Promise<void> {
+    await this.persistVariants(variants);
   }
 
   async findById(id: string): Promise<Product | null> {
@@ -93,7 +137,9 @@ export class ProductRepositoryImpl implements IProductRepository {
     if (!Types.ObjectId.isValid(id)) return null;
     const doc = await this.productVariantModel.findById(id).lean();
     if (!doc) return null;
-    return ProductVariantMapper.toDomain(doc as unknown as ProductVariantDocument);
+    return ProductVariantMapper.toDomain(
+      doc as unknown as ProductVariantDocument,
+    );
   }
 
   async findVariantsByProductId(productId: string): Promise<ProductVariant[]> {
@@ -101,7 +147,9 @@ export class ProductRepositoryImpl implements IProductRepository {
     const docs = await this.productVariantModel
       .find({ productId: new Types.ObjectId(productId) })
       .lean();
-    return docs.map((doc) => ProductVariantMapper.toDomain(doc as unknown as ProductVariantDocument));
+    return docs.map((doc) =>
+      ProductVariantMapper.toDomain(doc as unknown as ProductVariantDocument),
+    );
   }
 
   async findAll(
@@ -114,7 +162,9 @@ export class ProductRepositoryImpl implements IProductRepository {
     ]);
 
     return {
-      data: docs.map((doc) => ProductMapper.toDomain(doc as unknown as ProductDocument)),
+      data: docs.map((doc) =>
+        ProductMapper.toDomain(doc as unknown as ProductDocument),
+      ),
       total,
     };
   }

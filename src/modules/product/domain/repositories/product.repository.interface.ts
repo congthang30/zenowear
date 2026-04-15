@@ -1,12 +1,19 @@
 import { Product } from '../entities/product.entity';
 import { ProductVariant } from '../entities/product-variant.entity';
 
-export const PRODUCT_REPOSITORY_TOKEN = Symbol('PRODUCT_REPOSITORY_TOKEN');
-
 export interface IProductRepository {
-  save(product: Product): Promise<void>;
+  /** Trả về id đã ghi (ObjectId dạng string). */
+  save(product: Product): Promise<string>;
   saveVariant(variant: ProductVariant): Promise<void>;
   saveVariants(variants: ProductVariant[]): Promise<void>;
+
+  /**
+   * Ghi product và variants trong một transaction (MongoDB cần replica set).
+   */
+  saveProductWithVariants(
+    product: Product,
+    buildVariants: (productId: string) => ProductVariant[],
+  ): Promise<string>;
 
   findById(id: string): Promise<Product | null>;
   findByBarcode(barcode: string): Promise<Product | null>;

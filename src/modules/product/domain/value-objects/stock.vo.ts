@@ -6,7 +6,7 @@ export class Stock {
 
   static create(available: number, reserved: number = 0): Stock {
     if (available < 0 || reserved < 0) {
-      throw new Error('Stock cannot be negative');
+      throw new InvalidStockError('Stock cannot be negative');
     }
     return new Stock(available, reserved);
   }
@@ -57,5 +57,12 @@ export class Stock {
     if (quantity <= 0) throw new Error('Invalid quantity');
 
     return new Stock(this._available + quantity, this._reserved);
+  }
+}
+
+export class InvalidStockError extends Error {
+  constructor(message = 'Invalid stock.') {
+    super(message);
+    this.name = 'InvalidStockError';
   }
 }

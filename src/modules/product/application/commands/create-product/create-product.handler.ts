@@ -5,27 +5,29 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PRODUCT_REPOSITORY_TOKEN } from '../../../domain/repositories/product.repository.interface';
 import type { IProductRepository } from '../../../domain/repositories/product.repository.interface';
 import { CreateProductCommand } from './create-product.command';
 import { Product } from '../../../domain/entities/product.entity';
 import { ProductVariant } from '../../../domain/entities/product-variant.entity';
-import { ProductName } from '../../../domain/value-objects/productName.vo';
-import { Slug } from '../../../domain/value-objects/slug.vo';
-import { Barcode } from '../../../domain/value-objects/barcode.vo';
-import { Sku } from '../../../domain/value-objects/sku.vo';
-import { Price } from '../../../domain/value-objects/price.vo';
-import { OriginalPrice } from '../../../domain/value-objects/originalPrice.vo';
-import { Stock } from '../../../domain/value-objects/stock.vo';
+import {
+  parseBarcode,
+  parseOriginalPrice,
+  parsePrice,
+  parseProductName,
+  parseSku,
+  parseSlug,
+  parseStock,
+} from '../../parse-product-value-objects';
 import { BRAND_REPOSITORY } from '../../../../brand/application/category-repository.token';
 import { CATEGORY_REPOSITORY } from '../../../../category/application/category-repository.token';
 import type { BrandRepository } from '../../../../brand/domain/repositories/brand.repository';
 import type { CategoryRepository } from '../../../../category/domain/repositories/category.repository';
+import { PRODUCT_REPOSITORY } from '../../product-repository.token';
 
 @Injectable()
 export class CreateProductHandler {
   constructor(
-    @Inject(PRODUCT_REPOSITORY_TOKEN)
+    @Inject(PRODUCT_REPOSITORY)
     private readonly productRepository: IProductRepository,
     @Inject(BRAND_REPOSITORY)
     private readonly brandRepository: BrandRepository,
@@ -47,9 +49,9 @@ export class CreateProductHandler {
     }
 
     try {
-      const productName = ProductName.create(command.productName);
-      const barcode = Barcode.create(command.barcode);
-      const slugObj = Slug.create(command.productName);
+      const productName = parseProductName(command.productName);
+      const barcode = parseBarcode(command.barcode);
+      const slugObj = parseSlug(command.productName);
 
       const slugExists = await this.productRepository.existsBySlug(
         slugObj.value,
@@ -71,40 +73,33 @@ export class CreateProductHandler {
         videoUrl: command.videoUrl,
       });
 
-      await this.productRepository.save(product);
-
-      const savedProduct = await this.productRepository.findByBarcode(
-        command.barcode,
+      return await this.productRepository.saveProductWithVariants(
+        product,
+        (productId) =>
+          command.variants.map((v) =>
+            ProductVariant.create({
+              productId,
+              sku: parseSku(v.sku),
+              attributes: v.attributes,
+              originalPrice: parseOriginalPrice(v.originalPrice),
+              price: parsePrice(v.price),
+              stock: parseStock(v.stock),
+              isDefault: v.isDefault,
+              images: v.images,
+            }),
+          ),
       );
-
-      if (!savedProduct?.id) {
-        throw new Error('Product save failed - could not resolve ID');
-      }
-
-      const variants = command.variants.map((v) =>
-        ProductVariant.create({
-          productId: savedProduct.id!,
-          sku: Sku.create(v.sku),
-          attributes: v.attributes,
-          originalPrice: OriginalPrice.create(v.originalPrice),
-          price: Price.create(v.price),
-          stock: Stock.create(v.stock),
-          isDefault: v.isDefault,
-          images: v.images,
-        }),
-      );
-
-      await this.productRepository.saveVariants(variants);
-
-      return savedProduct.id;
     } catch (error) {
       if (
         error instanceof ConflictException ||
-        error instanceof NotFoundException
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
       ) {
         throw error;
       }
-      throw new BadRequestException(error);
+      throw new BadRequestException(
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 }

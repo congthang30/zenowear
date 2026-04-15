@@ -1,16 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PRODUCT_REPOSITORY_TOKEN } from '../../../domain/repositories/product.repository.interface';
 import type { IProductRepository } from '../../../domain/repositories/product.repository.interface';
 import { GetProductsQuery } from './get-products.query';
 import {
   PaginatedProductResponseDto,
   ProductResponseDto,
 } from '../../dtos/product-response.dto';
+import { PRODUCT_REPOSITORY } from '../../product-repository.token';
 
 @Injectable()
 export class GetProductsHandler {
   constructor(
-    @Inject(PRODUCT_REPOSITORY_TOKEN)
+    @Inject(PRODUCT_REPOSITORY)
     private readonly productRepository: IProductRepository,
   ) {}
 

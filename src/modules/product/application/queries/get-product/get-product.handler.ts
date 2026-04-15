@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { PRODUCT_REPOSITORY_TOKEN } from '../../../domain/repositories/product.repository.interface';
+import { PRODUCT_REPOSITORY } from '../../product-repository.token';
 import type { IProductRepository } from '../../../domain/repositories/product.repository.interface';
 import { GetProductQuery } from './get-product.query';
 import {
@@ -10,7 +10,7 @@ import {
 @Injectable()
 export class GetProductHandler {
   constructor(
-    @Inject(PRODUCT_REPOSITORY_TOKEN)
+    @Inject(PRODUCT_REPOSITORY)
     private readonly productRepository: IProductRepository,
   ) {}
 

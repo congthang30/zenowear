@@ -2,7 +2,9 @@ export class Slug {
   private constructor(private readonly _value: string) {}
 
   static create(input: string): Slug {
-    if (!input) throw new Error('Slug is required');
+    if (!input) {
+      throw new InvalidSlugError('Slug is required');
+    }
 
     const normalized = input
       .trim()
@@ -11,7 +13,7 @@ export class Slug {
       .replace(/(^-|-$)/g, '');
 
     if (!normalized) {
-      throw new Error('Invalid slug');
+      throw new InvalidSlugError('Invalid slug');
     }
 
     return new Slug(normalized);
@@ -23,5 +25,12 @@ export class Slug {
 
   get value(): string {
     return this._value;
+  }
+}
+
+export class InvalidSlugError extends Error {
+  constructor(message = 'Invalid slug.') {
+    super(message);
+    this.name = 'InvalidSlugError';
   }
 }
