@@ -24,6 +24,10 @@ export class Price {
   equals(other: Price): boolean {
     return this._value === other._value;
   }
+
+  static reconstitute(value: number): Price {
+    return new Price(value);
+  }
 }
 
 export class InvalidPriceError extends Error {

@@ -28,6 +28,10 @@ export class Barcode {
   equals(other: Barcode): boolean {
     return this.normalized === other.normalized;
   }
+
+  static reconstitute(value: string): Barcode {
+    return new Barcode(value);
+  }
 }
 
 export class InvalidBarcodeError extends Error {

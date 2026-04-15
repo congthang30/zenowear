@@ -16,6 +16,10 @@ export class Sku {
   get value(): string {
     return this._value;
   }
+
+  static reconstitute(value: string): Sku {
+    return new Sku(value);
+  }
 }
 
 export class InvalidSkuError extends Error {

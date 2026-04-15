@@ -26,6 +26,6 @@ import { CategoryController } from './presentation/controllers/category.controll
     },
     CreateCategoryHandler,
   ],
-  exports: [CategoryRepositoryImpl, MongooseModule],
+  exports: [CategoryRepositoryImpl, CATEGORY_REPOSITORY, MongooseModule],
 })
 export class CategoryModule {}

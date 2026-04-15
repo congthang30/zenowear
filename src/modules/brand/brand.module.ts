@@ -27,6 +27,6 @@ import { CreateBrandHandler } from './application/commands/create-brand/create-c
     },
     CreateBrandHandler,
   ],
-  exports: [BrandRepositoryImpl, MongooseModule],
+  exports: [BrandRepositoryImpl, BRAND_REPOSITORY, MongooseModule],
 })
 export class BrandModule {}

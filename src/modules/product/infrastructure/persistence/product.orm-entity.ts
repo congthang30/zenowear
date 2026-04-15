@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { ProductStatus } from '../../domain/enum/productStatus.enum';
 
 @Schema({
-  collection: 'products',
+  collection: 'Products',
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true },

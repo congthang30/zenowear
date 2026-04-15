@@ -36,6 +36,10 @@ export class ProductName {
   equals(other: ProductName): boolean {
     return this.normalized === other.normalized;
   }
+
+  static reconstitute(value: string): ProductName {
+    return new ProductName(value);
+  }
 }
 
 export class InvalidProductNameError extends Error {

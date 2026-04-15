@@ -17,7 +17,11 @@ export class Slug {
     return new Slug(normalized);
   }
 
+  static reconstitute(value: string): Slug {
+    return new Slug(value);
+  }
+
   get value(): string {
-    return this.value;
+    return this._value;
   }
 }

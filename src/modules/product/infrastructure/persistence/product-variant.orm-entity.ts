@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
 @Schema({
-  collection: 'product_variants',
+  collection: 'Product_Variants',
   timestamps: true,
 })
 export class ProductVariantDocument {
@@ -50,11 +50,3 @@ export const ProductVariantSchema = SchemaFactory.createForClass(
   ProductVariantDocument,
 );
 
-// Index cơ bản
-ProductVariantSchema.index({ productId: 1 });
-
-//Unique variant đúng cách
-ProductVariantSchema.index(
-  { productId: 1, attributeHash: 1 },
-  { unique: true },
-);
