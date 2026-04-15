@@ -25,6 +25,11 @@ export class BrandName {
     return new BrandName(normalized);
   }
 
+  /** Khôi phục từ DB (đã chuẩn hóa). */
+  static reconstitute(stored: string): BrandName {
+    return new BrandName(stored);
+  }
+
   get value(): string {
     return this.normalized;
   }

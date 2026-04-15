@@ -4,15 +4,21 @@ import { BrandStatus } from '../../domain/enum/brand-status.enum';
 
 @Schema({ collection: 'Brand', timestamps: true })
 export class BrandDocument {
-  _id: Types.ObjectId;
+  _id!: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true, index: true })
   brandName: string;
+
+  @Prop({ type: String, default: null })
+  logo: string | null;
+
+  @Prop({ type: String, default: null })
+  description: string | null;
 
   @Prop({
     type: String,
     enum: BrandStatus,
-    default: BrandStatus.ACTIVE,
+    default: BrandStatus.DRAFT,
     required: true,
   })
   brandStatus: BrandStatus;

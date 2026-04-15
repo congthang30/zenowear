@@ -18,7 +18,7 @@ import {
   parseSlug,
   parseStock,
 } from '../../parse-product-value-objects';
-import { BRAND_REPOSITORY } from '../../../../brand/application/category-repository.token';
+import { BRAND_REPOSITORY } from '../../../../brand/application/brand-repository.token';
 import { CATEGORY_REPOSITORY } from '../../../../category/application/category-repository.token';
 import type { BrandRepository } from '../../../../brand/domain/repositories/brand.repository';
 import type { CategoryRepository } from '../../../../category/domain/repositories/category.repository';

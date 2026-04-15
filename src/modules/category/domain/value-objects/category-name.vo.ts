@@ -28,6 +28,10 @@ export class CategoryName {
     return this.normalized;
   }
 
+  static reconstitute(value: string): CategoryName {
+    return new CategoryName(value);
+  }
+
   equals(other: CategoryName): boolean {
     return this.normalized === other.normalized;
   }

@@ -7,8 +7,9 @@ export class CategoryMapper {
   static toDomain(doc: CategoryDocument): Category {
     return Category.reconstitute({
       id: doc._id.toString(),
-      categoryName: CategoryName.create(doc.categoryName),
+      categoryName: CategoryName.reconstitute(doc.categoryName),
       categoryStatus: doc.categoryStatus,
+      parentId: doc.parentId ? doc.parentId.toString() : null,
     });
   }
 
@@ -16,11 +17,13 @@ export class CategoryMapper {
     id: string | undefined;
     categoryName: string;
     categoryStatus: CategoryStatus;
+    parentId: string | null;
   } {
     return {
-      id: entity.Id,
+      id: entity.id,
       categoryName: entity.categoryName.value,
       categoryStatus: entity.status,
+      parentId: entity.parentId,
     };
   }
 }

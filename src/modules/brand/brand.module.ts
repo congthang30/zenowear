@@ -8,8 +8,13 @@ import {
 } from './infrastructure/persistence/brand.orm-entity';
 import { BrandController } from './presentation/controllers/brand.controller';
 import { BrandRepositoryImpl } from './infrastructure/persistence/brand.repository.impl';
-import { BRAND_REPOSITORY } from './application/category-repository.token';
-import { CreateBrandHandler } from './application/commands/create-brand/create-category.handler';
+import { BRAND_REPOSITORY } from './application/brand-repository.token';
+import { CreateBrandHandler } from './application/commands/create-brand/create-brand.handler';
+import { UpdateBrandHandler } from './application/commands/update-brand/update-brand.handler';
+import { SoftDeleteBrandHandler } from './application/commands/soft-delete-brand/soft-delete-brand.handler';
+import { ChangeBrandStatusHandler } from './application/commands/change-brand-status/change-brand-status.handler';
+import { GetActiveBrandsHandler } from './application/queries/get-active-brands/get-active-brands.handler';
+import { GetBrandByIdHandler } from './application/queries/get-brand-by-id/get-brand-by-id.handler';
 
 @Module({
   imports: [
@@ -26,6 +31,11 @@ import { CreateBrandHandler } from './application/commands/create-brand/create-c
       useExisting: BrandRepositoryImpl,
     },
     CreateBrandHandler,
+    UpdateBrandHandler,
+    SoftDeleteBrandHandler,
+    ChangeBrandStatusHandler,
+    GetActiveBrandsHandler,
+    GetBrandByIdHandler,
   ],
   exports: [BrandRepositoryImpl, BRAND_REPOSITORY, MongooseModule],
 })

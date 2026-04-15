@@ -1,9 +1,9 @@
 import { CategoryStatus } from '../../../domain/enum/category-status.enum';
 
 export class CreateCategoryCommand {
-  status: CategoryStatus;
   constructor(
-    readonly categoryName: string,
-    readonly categoryStatus: CategoryStatus,
+    readonly name: string,
+    readonly parentId?: string | null,
+    readonly status?: CategoryStatus,
   ) {}
 }
