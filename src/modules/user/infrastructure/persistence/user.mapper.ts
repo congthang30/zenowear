@@ -11,7 +11,7 @@ export class UserMapper {
     return UserProfile.reconstitute({
       id: doc._id.toString(),
       fullName: FullName.create(doc.fullName),
-      dateOfBirth: DateOfBirth.create(doc.dateOfBirth),
+      dateOfBirth: DateOfBirth.fromPersistence(doc.dateOfBirth),
       avatar: doc.avatar,
     });
   }

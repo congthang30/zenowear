@@ -34,6 +34,7 @@ import { UserProfileController } from './presentation/controllers/user-profile.c
     MongooseModule,
     UserRepositoryImpl,
     { provide: USER_REPOSITORY, useExisting: UserRepositoryImpl },
+    UpdateProfileHandler,
   ],
 })
 export class UserModule {}

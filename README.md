@@ -1,98 +1,183 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# ZenoWear — Tài liệu cho Frontend & tổng quan API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Tài liệu mô tả **luồng nghiệp vụ**, **API phân quyền User / Admin**, và **gợi ý màn hình** để team FE triển khai. Base URL mặc định: **`/api/v1`** (cấu hình `GLOBAL_PREFIX` trong env). Swagger: **`/api/v1/docs`**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 1. Xác thực
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Đăng ký / đăng nhập trả **JWT** (`access token`).
+- Các route cần đăng nhập: gửi header **`Authorization: Bearer <token>`**.
+- Role trong token: thường là **`USER`** hoặc **`ADMIN`** (một số endpoint chỉ `ADMIN`).
 
-## Project setup
+---
 
-```bash
-$ npm install
-```
+## 2. API theo vai trò
 
-## Compile and run the project
+### 2.1. Công khai hoặc User (không cần admin)
 
-```bash
-# development
-$ npm run start
+| Nhóm | Method | Đường dẫn | Ghi chú |
+|------|--------|-----------|---------|
+| **Auth** | `POST` | `/auth/register` | Đăng ký |
+| | `POST` | `/auth/login` | Đăng nhập → `token` |
+| | `POST` | `/auth/logout` | JWT |
+| | `POST` | `/auth/me/password` | Đổi mật khẩu |
+| **User profile** | `GET` | `/users/me` | JWT |
+| | `PATCH` | `/users/me` | Cập nhật profile |
+| | `PATCH` | `/users/me/avatar` | Avatar (Cloudinary) |
+| **Danh mục / thương hiệu (đọc)** | `GET` | `/categories/active` | Cây danh mục dùng cho filter |
+| | `GET` | `/categories/tree` | |
+| | `GET` | `/categories/:id` | |
+| | `GET` | `/brands/active` | |
+| | `GET` | `/brands/:id` | |
+| **Sản phẩm (storefront)** | `GET` | `/products` | Danh sách / lọc (xem Swagger) |
+| | `GET` | `/products/:id` | Chi tiết + variants |
+| | `POST` | `/products/:id/views` | Tăng lượt xem (optional) |
+| **Giỏ hàng** | `GET` | `/cart` | JWT |
+| | `POST` | `/cart/items` | Thêm / cộng dồn |
+| | `DELETE` | `/cart/items` | Xóa dòng |
+| | `PATCH` | `/cart/items/quantity` | Delta số lượng |
+| | `PATCH` | `/cart/items/variant` | Đổi biến thể |
+| **Địa chỉ giao hàng** | `GET` | `/addresses` | JWT |
+| | `POST` | `/addresses` | |
+| | `PATCH` | `/addresses/:id` | |
+| | `DELETE` | `/addresses/:id` | |
+| **Coupon (user)** | `POST` | `/coupons/validate` | Body: `code`, optional `subtotalAmount` (không gửi thì dùng giỏ) |
+| | `POST` | `/coupons/apply-preview` | Áp mã theo **giỏ hiện tại** → `discountAmount`, `finalAmount`, `appliedCoupon` |
+| | `GET` | `/coupons/me/usages` | Lịch sử đã dùng mã (`?page=&limit=`) |
+| **Đơn hàng** | `POST` | `/orders/preview` | Xem trước tổng tiền + tồn kho; optional `couponCode` / `discountAmount` |
+| | `POST` | `/orders` | Tạo đơn từ giỏ; optional `couponCode`, `addressId` **hoặc** `shippingAddress`, thanh toán ONLINE/COD |
+| | `GET` | `/orders` | Đơn của tôi (phân trang) |
+| | `GET` | `/orders/:id` | Chi tiết (chủ đơn hoặc admin) |
+| | `POST` | `/orders/:id/cancel` | Hủy đơn (user) |
+| | `POST` | `/orders/:id/retry-online-payment` | Thanh toán lại ONLINE (trong 24h, đơn PENDING) |
+| | `PATCH` | `/orders/:id/payment-method` | Đổi COD ↔ ONLINE (trong 24h) |
+| **Thanh toán (server)** | `POST` | `/orders/payment/callback` | Webhook cổng (secret header nếu cấu hình); không phải màn FE |
 
-# watch mode
-$ npm run start:dev
+### 2.2. Admin (`JWT` + role `ADMIN`)
 
-# production mode
-$ npm run start:prod
-```
+| Nhóm | Method | Đường dẫn | Ghi chú |
+|------|--------|-----------|---------|
+| **Danh mục** | `POST` | `/categories` | CRUD + bật/tắt |
+| | `PATCH` | `/categories/:id` | |
+| | `DELETE` | `/categories/:id` | |
+| | `PATCH` | `/categories/:id/status` | |
+| **Thương hiệu** | `POST` | `/brands` | |
+| | `PATCH` | `/brands/:id` | |
+| | `DELETE` | `/brands/:id` | |
+| | `PATCH` | `/brands/:id/status` | |
+| **Sản phẩm** | `POST` | `/products` | Tạo SP + variant |
+| | `PATCH` | `/products/:id` | |
+| | `DELETE` | `/products/:id` | Soft delete |
+| | `PATCH` | `/products/:id/status` | |
+| | `PATCH` | `/products/:id/featured` | |
+| | `POST` | `/products/:id/variants` | |
+| | `PATCH` | `/products/:id/variants/:variantId` | |
+| | `DELETE` | `/products/:id/variants/:variantId` | |
+| **Media** | `POST` | `/media/images` | Upload ảnh |
+| **Coupon** | `POST` | `/admin/coupons` | Tạo mã |
+| | `PATCH` | `/admin/coupons/:id` | Sửa |
+| | `PATCH` | `/admin/coupons/:id/status` | DRAFT / ACTIVE / INACTIVE / EXPIRED |
+| **Đơn hàng** | `PATCH` | `/orders/:id/status` | Đổi trạng thái vận hành |
+| | `POST` | `/orders/:id/confirm` | Xác nhận đơn |
 
-## Run tests
+Chi tiết body/query/response: mở **Swagger** (`/api/v1/docs`) — đây là nguồn chuẩn nhất cho FE.
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## 3. Luồng nghiệp vụ chính (cách hệ thống hoạt động)
 
-# test coverage
-$ npm run test:cov
-```
+### 3.1. Khách → mua hàng
 
-## Deployment
+1. **Đăng nhập** → lưu token.
+2. **Duyệt sản phẩm** (`GET /products`, `GET /products/:id`) — chọn `variantId`, giá, tồn.
+3. **Thêm giỏ** (`POST /cart/items`).
+4. **Giỏ** (`GET /cart`) — chỉnh số lượng / xóa / đổi variant.
+5. **Checkout**
+   - (Optional) **Sổ địa chỉ** (`GET/POST/PATCH/DELETE /addresses`).
+   - **Preview đơn** `POST /orders/preview` — có thể gửi `couponCode` và/hoặc `discountAmount` (khi có mã thì ưu tiên mã).
+   - **Nhập mã thử** có thể dùng `POST /coupons/apply-preview` hoặc `validate` để hiển thị tiền giảm trước khi đặt.
+6. **Đặt hàng** `POST /orders`:
+   - Gửi **`addressId`** (địa chỉ đã lưu) **hoặc** **`shippingAddress`** (nhập mới) — **không** gửi cả hai.
+   - **`paymentMethod`**: `COD` hoặc `ONLINE`.
+   - **ONLINE**: thêm `onlineGateway` (VNPay/MoMo), `returnUrl`, optional `clientIp`, `ipnUrl`.
+   - **Coupon**: optional `couponCode` — giảm giá được tính lại server-side; sau khi tạo đơn thành công hệ thống **ghi nhận usage** (lượt dùng).
+7. **Response tạo đơn**: `id`, `message`, và với ONLINE có **`paymentRedirectUrl`** → FE **redirect** user sang cổng thanh toán.
+8. User quay lại **`returnUrl`** (FE tự route) — đọc query VNPay/MoMo, gọi lại `GET /orders/:id` để hiển thị trạng thái.
+9. **Email**: COD gửi mail đặt hàng ngay; ONLINE gửi mail **sau khi** callback xác nhận thanh toán thành công (nếu SMTP đã cấu hình).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 3.2. Thanh toán ONLINE thất bại / đổi ý
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Trong **24 giờ**, đơn **PENDING** và chưa **PAID**:
+  - **`POST /orders/:id/retry-online-payment`** — lấy link thanh toán mới.
+  - **`PATCH /orders/:id/payment-method`** — đổi sang COD hoặc ngược lại (sang ONLINE trả `paymentRedirectUrl`).
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### 3.3. Hủy đơn & coupon
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- User **`POST /orders/:id/cancel`** — hoàn kho nếu đơn chưa giao.
+- Nếu env **`COUPON_RESTORE_ON_CANCEL=true`**: khi hủy, hệ thống **hoàn lượt** coupon (xóa bản ghi usage + giảm `usedCount`). Mặc định env có thể là `false`.
 
-## Resources
+### 3.4. Admin vận hành
 
-Check out a few resources that may come in handy when working with NestJS:
+- CRUD **danh mục, thương hiệu, sản phẩm**, upload **media**.
+- **Coupon**: tạo mã → chuyển **DRAFT → ACTIVE** khi sẵn sàng chạy campaign.
+- **Đơn**: đổi trạng thái vận hành, xác nhận đơn theo quy trình nội bộ.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 4. Gợi ý giao diện (FE) — layout & màn hình
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Không bắt buộc UI cụ thể; dưới đây là **skeleton** phù hợp API hiện có.
 
-## Stay in touch
+### 4.1. Chung
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- **Header**: logo, search sản phẩm, giỏ (badge số dòng), avatar menu (profile / đơn hàng / đăng xuất).
+- **Auth**: trang Login / Register; lưu token (memory + refresh strategy tùy team).
 
-## License
+### 4.2. Storefront
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Màn hình | Hành vi chính |
+|----------|----------------|
+| **Trang chủ / PLP** | Gọi `GET /products` + filter category/brand từ `GET /categories/active`, `GET /brands/active`. |
+| **PDP (chi tiết SP)** | `GET /products/:id` — chọn variant (SKU, giá, tồn), nút **Thêm giỏ** → `POST /cart/items`. |
+| **Giỏ** | `GET /cart` — list dòng; actions gọi PATCH quantity / DELETE / đổi variant. |
+| **Checkout** | Form địa chỉ hoặc chọn từ `GET /addresses`; ô **mã giảm giá** gọi `apply-preview` hoặc `validate`; nút **Preview đơn** → `POST /orders/preview`; hiển thị tổng phụ, giảm, thành tiền. |
+| **Thanh toán** | Chọn COD vs ONLINE; nếu ONLINE hiển thị chọn VNPay/MoMo + nhập/đặt sẵn `returnUrl`. Submit `POST /orders` → nếu có `paymentRedirectUrl` thì `window.location = url`. |
+| **Kết quả thanh toán** | Route FE trùng `returnUrl` — đọc query; gọi `GET /orders/:id`. |
+| **Đơn của tôi** | `GET /orders` + trang chi tiết `GET /orders/:id`; nút hủy (nếu được); với ONLINE chưa trả: nút **Thanh toán lại** / **Đổi sang COD**. |
+| **Mã đã dùng** | `GET /coupons/me/usages` (trang “Khuyến mãi của tôi”). |
+
+### 4.3. Admin (layout riêng, guard route theo role)
+
+| Khu vực | Chức năng |
+|---------|-----------|
+| **Dashboard** | Tùy sản phẩm — có thể thống kê sau. |
+| **Categories / Brands** | Bảng + form CRUD + toggle status. |
+| **Products** | Danh sách; form tạo/sửa; quản lý variants; featured; status. |
+| **Coupons** | Bảng mã; form tạo/sửa (loại %, cố định, free ship, min đơn, max giảm, hạn, lượt); nút đổi status. |
+| **Orders** | Danh sách (có thể filter theo status); chi tiết; đổi trạng thái / xác nhận. |
+
+### 4.4. Trải nghiệm UX nên nhớ
+
+- Luôn **disable nút đặt hàng** khi đang gọi API; hiển thị lỗi 400 từ server (giỏ trống, mã không hợp lệ, thiếu `returnUrl` ONLINE, v.v.).
+- **Coupon**: khi user nhập mã, debounce rồi gọi `apply-preview` để cập nhật dòng “Bạn được giảm …”.
+- **Địa chỉ**: radio “Chọn đã lưu” vs “Nhập mới” — chỉ gửi một trong hai cho `POST /orders`.
+
+---
+
+## 5. Biến môi trường liên quan (tham khảo)
+
+- **`GLOBAL_PREFIX`**: mặc định `api/v1`.
+- **SMTP**: email xác nhận đơn / thanh toán.
+- **VNPay / MoMo**: URL và key sandbox/production.
+- **`COUPON_RESTORE_ON_CANCEL`**: `true` / `false`.
+- **`PAYMENT_WEBHOOK_SECRET`**: bảo vệ callback thanh toán nếu dùng.
+
+---
+
+## 6. Công nghệ backend (tham khảo nhanh)
+
+- **NestJS** + **MongoDB (Mongoose)**.
+- Kiến trúc theo module: Identity, User, Product, Cart, Order, Address, Coupon, Media, …
+
+Nếu cần bổ sung **ví dụ JSON** từng API theo từng màn, có thể yêu cầu thêm file `docs/fe-api-examples.md` riêng theo module.

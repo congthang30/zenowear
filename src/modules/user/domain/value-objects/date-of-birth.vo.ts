@@ -8,6 +8,22 @@ export class InvalidDateOfBirthError extends Error {
 export class DateOfBirth {
   private constructor(readonly _value: Date) {}
 
+  /**
+   * Khôi phục từ DB: chỉ cần ngày hợp lệ. Không áp quy tắc đăng ký (trong quá khứ / đủ 18 tuổi)
+   * để tránh crash khi đọc bản ghi cũ hoặc dữ liệu lệch múi giờ.
+   */
+  static fromPersistence(raw: Date): DateOfBirth {
+    if (!raw) {
+      throw new Error('Date of birth is required');
+    }
+    const date = new Date(raw);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date of birth format');
+    }
+    date.setHours(0, 0, 0, 0);
+    return new DateOfBirth(date);
+  }
+
   static create(raw: Date): DateOfBirth {
     if (!raw) {
       throw new Error('Date of birth is required');

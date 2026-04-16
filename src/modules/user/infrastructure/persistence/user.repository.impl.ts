@@ -18,6 +18,17 @@ export class UserRepositoryImpl implements UserRepository {
     return doc ? UserMapper.toDomain(doc) : null;
   }
 
+  async findByUserIds(userIds: string[]): Promise<UserProfile[]> {
+    const ids = userIds.filter((id) => Types.ObjectId.isValid(id));
+    if (ids.length === 0) {
+      return [];
+    }
+    const docs = await this.userModel
+      .find({ _id: { $in: ids.map((id) => new Types.ObjectId(id)) } })
+      .exec();
+    return docs.map((d) => UserMapper.toDomain(d));
+  }
+
   async save(user: UserProfile): Promise<void> {
     const id = user.assertId();
     const payload = UserMapper.toPersistence(user);

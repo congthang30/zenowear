@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthJwtModule } from '../../common/auth-jwt.module';
 import { UserModule } from '../user/user.module';
-import { IDENTITY_REPOSITORY } from './application/identity-repository.token';
+import {
+  IDENTITY_REPOSITORY,
+} from './application/identity-repository.token';
 import { RegisterHandler } from './application/commands/register/register.handler';
 import { AuthController } from './presentation/controllers/auth.controller';
 import { IdentityRepositoryImpl } from './infrastructure/persistence/identity.repository.impl';
@@ -32,6 +34,10 @@ import { ChangeMyPasswordHandler } from './application/commands/change-my-passwo
     LoginHandler,
     ChangeMyPasswordHandler,
   ],
-  exports: [IdentityRepositoryImpl, MongooseModule],
+  exports: [
+    IdentityRepositoryImpl,
+    MongooseModule,
+    { provide: IDENTITY_REPOSITORY, useExisting: IdentityRepositoryImpl },
+  ],
 })
 export class IdentityModule {}

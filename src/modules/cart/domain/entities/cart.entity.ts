@@ -121,4 +121,8 @@ export class Cart {
   get items() {
     return this._items;
   }
+
+  clearItems() {
+    this._items = [];
+  }
 }
