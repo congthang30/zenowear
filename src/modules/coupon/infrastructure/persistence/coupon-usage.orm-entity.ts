@@ -16,9 +16,13 @@ export class CouponUsageDocument {
 
   @Prop({ type: Date, required: true, default: () => new Date() })
   usedAt!: Date;
+
+  @Prop({ type: String, index: true })
+  ipHash?: string | null;
 }
 
 export const CouponUsageSchema = SchemaFactory.createForClass(CouponUsageDocument);
 
 CouponUsageSchema.index({ userId: 1, couponId: 1, orderId: 1 }, { unique: true });
 CouponUsageSchema.index({ userId: 1, usedAt: -1 });
+CouponUsageSchema.index({ couponId: 1, ipHash: 1, usedAt: -1 });

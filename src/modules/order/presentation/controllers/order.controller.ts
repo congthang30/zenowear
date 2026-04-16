@@ -9,9 +9,11 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -69,6 +71,10 @@ import { RetryOnlinePaymentCommand } from '../../application/commands/retry-onli
 import { ChangeOrderPaymentMethodHandler } from '../../application/commands/change-order-payment-method/change-order-payment-method.handler';
 import { ChangeOrderPaymentMethodCommand } from '../../application/commands/change-order-payment-method/change-order-payment-method.command';
 import { PaymentGatewayRegistry } from '../../infrastructure/payment/payment-gateway.registry';
+import {
+  resolveClientIp,
+  resolveClientIpTrusted,
+} from '../../../../common/http/resolve-client-ip';
 
 function isAdmin(user: JwtAccessPayload): boolean {
   return String(user.role).toUpperCase() === 'ADMIN';
@@ -105,12 +111,15 @@ export class OrderController {
   preview(
     @CurrentUser() user: JwtAccessPayload,
     @Body() body: PreviewOrderDto,
+    @Req() req: Request,
   ): Promise<OrderPreviewResponseDto> {
+    const couponAntiAbuseClientIp = resolveClientIpTrusted(req);
     return this.previewOrderHandler.execute(
       new PreviewOrderCommand(
         user.userId,
         body.discountAmount,
         body.couponCode,
+        couponAntiAbuseClientIp,
       ),
     );
   }
@@ -152,6 +161,7 @@ export class OrderController {
   async create(
     @CurrentUser() user: JwtAccessPayload,
     @Body() body: CreateOrderDto,
+    @Req() req: Request,
   ): Promise<CreateOrderResponseDto> {
     const shipping =
       body.shippingAddress != null
@@ -166,6 +176,9 @@ export class OrderController {
           }
         : undefined;
 
+    const gatewayClientIp = resolveClientIp(req, body.clientIp);
+    const couponAntiAbuseClientIp = resolveClientIpTrusted(req);
+
     return this.createOrderFromCartHandler.execute(
       new CreateOrderFromCartCommand(
         user.userId,
@@ -174,9 +187,10 @@ export class OrderController {
         body.addressId,
         body.discountAmount,
         body.returnUrl,
-        body.clientIp,
+        gatewayClientIp,
         body.ipnUrl,
         body.couponCode,
+        couponAntiAbuseClientIp,
       ),
     );
   }

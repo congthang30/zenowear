@@ -10,6 +10,7 @@ export class ValidateCouponForUserHandler {
     userId: string,
     code: string,
     subtotalAmount?: number,
+    clientIp?: string | null,
   ): Promise<CouponQuoteResponseDto> {
     const r =
       subtotalAmount != null
@@ -17,8 +18,9 @@ export class ValidateCouponForUserHandler {
             userId,
             code,
             subtotalAmount,
+            clientIp,
           )
-        : await this.couponValidation.evaluateForCartUser(userId, code);
+        : await this.couponValidation.evaluateForCartUser(userId, code, clientIp);
     return {
       subtotal: r.subtotal,
       discountAmount: r.discountAmount,

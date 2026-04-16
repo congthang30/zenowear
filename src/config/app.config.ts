@@ -3,5 +3,10 @@ export default () => ({
     port: parseInt(process.env.PORT ?? '9000', 10),
     globalPrefix: process.env.GLOBAL_PREFIX ?? 'api/v1',
     corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+    /**
+     * Express trust proxy: 1 = tin cậy 1 hop (Nginx/ALB phía trước).
+     * Cần để req.ip / rate limit phản ánh client thật thay vì IP proxy.
+     */
+    trustProxy: process.env.TRUST_PROXY ?? '0',
   },
 });

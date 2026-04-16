@@ -16,6 +16,18 @@ export class AppliedCouponResponseDto {
 
   @ApiProperty()
   value!: number;
+
+  @ApiProperty({
+    description:
+      'Mỗi tài khoản tối đa dùng mã cho bao nhiêu đơn thành công (sau khi tạo đơn)',
+  })
+  usagePerUser!: number;
+
+  @ApiProperty({
+    description:
+      'Ước tính lượt còn lại cho user này trước đơn hiện tại (chưa trừ đơn đang đặt)',
+  })
+  remainingUsesForUser!: number;
 }
 
 export class CouponQuoteResponseDto {

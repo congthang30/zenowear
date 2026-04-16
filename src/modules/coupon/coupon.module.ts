@@ -1,5 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthJwtModule } from '../../common/auth-jwt.module';
 import { CartModule } from '../cart/cart.module';
 import { OrderModule } from '../order/order.module';
@@ -29,6 +31,16 @@ import { CouponController } from './presentation/controllers/coupon.controller';
       { name: CouponDocument.name, schema: CouponSchema },
       { name: CouponUsageDocument.name, schema: CouponUsageSchema },
     ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get<number>('coupon.throttleTtlMs') ?? 60_000,
+          limit: config.get<number>('coupon.throttleLimit') ?? 40,
+        },
+      ],
+    }),
     AuthJwtModule,
     CartModule,
     forwardRef(() => OrderModule),

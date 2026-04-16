@@ -126,7 +126,7 @@ export class CouponRepositoryImpl implements ICouponRepository {
         ],
       },
       { $inc: { usedCount: 1 } },
-      { new: true, session },
+      { returnDocument: 'after', session },
     );
     if (!res) {
       const err = new Error('COUPON_NO_QUOTA');

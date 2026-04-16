@@ -97,6 +97,7 @@ export class CreateOrderFromCartHandler {
         command.userId,
         command.couponCode,
         totalAmount,
+        command.couponAntiAbuseClientIp,
       );
       discountAmount = q.discountAmount;
       appliedCouponId = q.couponId;
@@ -127,6 +128,7 @@ export class CreateOrderFromCartHandler {
           command.userId,
           appliedCouponId,
           orderId,
+          command.couponAntiAbuseClientIp,
         );
       }
       cart.clearItems();

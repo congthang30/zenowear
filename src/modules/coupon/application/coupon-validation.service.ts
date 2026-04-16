@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CART_REPOSITORY } from '../../cart/application/cart-repository.token';
 import type { ICartRepository } from '../../cart/domain/repositories/cart.repository.interface';
 import { OrderCheckoutService } from '../../order/application/services/order-checkout.service';
@@ -8,6 +14,7 @@ import type { ICouponRepository } from '../domain/repositories/coupon.repository
 import type { ICouponUsageRepository } from '../domain/repositories/coupon-usage.repository.interface';
 import { CouponDiscountService } from '../domain/services/coupon-discount.service';
 import type { AppliedCouponInfo } from '../domain/services/coupon-discount.service';
+import { hashClientIpForCoupon } from './coupon-ip-hash.util';
 
 export type CouponApplyResult = {
   subtotal: number;
@@ -19,6 +26,8 @@ export type CouponApplyResult = {
 
 @Injectable()
 export class CouponValidationService {
+  private readonly logger = new Logger(CouponValidationService.name);
+
   constructor(
     @Inject(COUPON_REPOSITORY)
     private readonly couponRepository: ICouponRepository,
@@ -27,11 +36,57 @@ export class CouponValidationService {
     @Inject(CART_REPOSITORY)
     private readonly cartRepository: ICartRepository,
     private readonly checkout: OrderCheckoutService,
+    private readonly config: ConfigService,
   ) {}
+
+  /**
+   * Giới hạn số user khác nhau dùng cùng mã từ cùng IP trong cửa sổ thời gian (chống farm acc).
+   * Gọi lại trước khi consume để giảm race với bước validate.
+   */
+  async assertSameIpUserQuota(
+    userId: string,
+    couponId: string,
+    clientIp?: string | null,
+  ): Promise<void> {
+    const max = this.config.get<number>(
+      'coupon.maxDistinctUsersPerCouponPerIpPerWindow',
+    );
+    if (max == null || max <= 0) {
+      return;
+    }
+    const salt = String(this.config.get<string>('coupon.ipHashSalt') ?? '');
+    if (!salt.trim()) {
+      this.logger.warn(
+        'coupon.ipHashSalt trống — bỏ qua COUPON_MAX_DISTINCT_USERS_PER_IP (đặt COUPON_IP_HASH_SALT)',
+      );
+      return;
+    }
+    const ipHash = hashClientIpForCoupon(String(clientIp ?? ''), salt);
+    if (!ipHash) {
+      return;
+    }
+    const hours = this.config.get<number>('coupon.ipAbuseWindowHours') ?? 24;
+    const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const users =
+      await this.usageRepository.findDistinctUserIdsByCouponAndIpHashSince(
+        couponId,
+        ipHash,
+        since,
+      );
+    if (users.includes(userId)) {
+      return;
+    }
+    if (users.length >= max) {
+      throw new BadRequestException(
+        'Quá nhiều tài khoản khác nhau đã dùng mã này từ cùng một mạng. Vui lòng thử sau hoặc liên hệ hỗ trợ.',
+      );
+    }
+  }
 
   async evaluateForCartUser(
     userId: string,
     code: string,
+    clientIp?: string | null,
   ): Promise<CouponApplyResult> {
     const cart = await this.cartRepository.findByUserId(userId);
     if (!cart?.items.length) {
@@ -39,13 +94,14 @@ export class CouponValidationService {
     }
     const items = await this.checkout.buildSnapshotsFromCart(cart);
     const subtotal = items.reduce((s, i) => s + i.totalPrice, 0);
-    return this.evaluateForSubtotal(userId, code, subtotal);
+    return this.evaluateForSubtotal(userId, code, subtotal, clientIp);
   }
 
   async evaluateForSubtotal(
     userId: string,
     code: string,
     subtotal: number,
+    clientIp?: string | null,
   ): Promise<CouponApplyResult> {
     const coupon = await this.couponRepository.findByCode(code);
     if (!coupon) {
@@ -68,6 +124,7 @@ export class CouponValidationService {
     if (usedByUser >= coupon.usagePerUser) {
       throw new BadRequestException('Bạn đã hết lượt dùng mã này');
     }
+    await this.assertSameIpUserQuota(userId, coupon.id, clientIp);
     if (
       coupon.usageLimit != null &&
       coupon.usedCount >= coupon.usageLimit
@@ -76,6 +133,7 @@ export class CouponValidationService {
     }
     const discountAmount = CouponDiscountService.computeDiscount(like, subtotal);
     const finalAmount = Math.max(0, subtotal - discountAmount);
+    const remainingUsesForUser = Math.max(0, coupon.usagePerUser - usedByUser);
     return {
       subtotal,
       discountAmount,
@@ -85,6 +143,10 @@ export class CouponValidationService {
         coupon.code,
         coupon.name,
         like,
+        {
+          usagePerUser: coupon.usagePerUser,
+          remainingUsesForUser,
+        },
       ),
       couponId: coupon.id,
     };

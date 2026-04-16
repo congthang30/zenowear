@@ -80,7 +80,10 @@ export class AdminUpdateCouponDto {
   @Min(1)
   usageLimit?: number | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      'Mỗi tài khoản tối đa dùng mã cho bao nhiêu đơn thành công',
+  })
   @IsOptional()
   @IsNumber()
   @Min(1)

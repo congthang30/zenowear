@@ -14,11 +14,18 @@ export interface ICouponUsageRepository {
     couponId: string,
     session?: ClientSession,
   ): Promise<number>;
+  findDistinctUserIdsByCouponAndIpHashSince(
+    couponId: string,
+    ipHash: string,
+    since: Date,
+    session?: ClientSession,
+  ): Promise<string[]>;
   create(
     userId: string,
     couponId: string,
     orderId: string,
     session?: ClientSession,
+    ipHash?: string | null,
   ): Promise<string>;
   findByUserId(
     userId: string,

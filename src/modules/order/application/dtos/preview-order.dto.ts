@@ -14,4 +14,13 @@ export class PreviewOrderDto {
   @MinLength(2)
   @MaxLength(40)
   couponCode?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Không còn dùng cho giới hạn mã (tránh fake IP). Server chỉ lấy IP từ proxy/header tin cậy.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(45)
+  clientIp?: string;
 }

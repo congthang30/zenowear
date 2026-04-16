@@ -95,6 +95,16 @@ export class AppliedCouponPreviewDto {
 
   @ApiProperty()
   value!: number;
+
+  @ApiProperty({
+    description: 'Mỗi tài khoản tối đa dùng mã cho bao nhiêu đơn thành công',
+  })
+  usagePerUser!: number;
+
+  @ApiProperty({
+    description: 'Ước tính lượt còn lại cho user này (trước đơn đang preview)',
+  })
+  remainingUsesForUser!: number;
 }
 
 export class OrderPreviewResponseDto {

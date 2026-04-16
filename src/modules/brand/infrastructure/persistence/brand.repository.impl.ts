@@ -64,7 +64,7 @@ export class BrandRepositoryImpl implements BrandRepository {
           logo: persistence.logo,
           description: persistence.description,
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

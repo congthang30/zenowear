@@ -32,11 +32,41 @@ export class CouponUsageRepositoryImpl implements ICouponUsageRepository {
     );
   }
 
+  async findDistinctUserIdsByCouponAndIpHashSince(
+    couponId: string,
+    ipHash: string,
+    since: Date,
+    session?: ClientSession,
+  ): Promise<string[]> {
+    if (!Types.ObjectId.isValid(couponId) || !ipHash) {
+      return [];
+    }
+    const oid = new Types.ObjectId(couponId);
+    const pipeline = [
+      {
+        $match: {
+          couponId: oid,
+          ipHash,
+          usedAt: { $gte: since },
+        },
+      },
+      { $group: { _id: null, users: { $addToSet: '$userId' } } },
+    ];
+    const agg = this.model.aggregate<{ users: Types.ObjectId[] }>(pipeline);
+    if (session) {
+      agg.session(session);
+    }
+    const rows = await agg.exec();
+    const users = rows[0]?.users ?? [];
+    return users.map((u) => u.toString());
+  }
+
   async create(
     userId: string,
     couponId: string,
     orderId: string,
     session?: ClientSession,
+    ipHash?: string | null,
   ): Promise<string> {
     const usedAt = new Date();
     const [doc] = await this.model.create(
@@ -46,6 +76,7 @@ export class CouponUsageRepositoryImpl implements ICouponUsageRepository {
           couponId: new Types.ObjectId(couponId),
           orderId: new Types.ObjectId(orderId),
           usedAt,
+          ...(ipHash ? { ipHash } : {}),
         },
       ],
       { session },

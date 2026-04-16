@@ -74,7 +74,11 @@ export class AdminCreateCouponDto {
   @Min(1)
   usageLimit?: number | null;
 
-  @ApiPropertyOptional({ default: 1 })
+  @ApiPropertyOptional({
+    default: 1,
+    description:
+      'Mỗi tài khoản tối đa dùng mã cho bao nhiêu đơn (mỗi đơn thành công tính 1 lượt sau khi thanh toán/đặt)',
+  })
   @IsOptional()
   @IsNumber()
   @Min(1)

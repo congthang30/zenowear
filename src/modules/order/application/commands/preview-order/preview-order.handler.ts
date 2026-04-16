@@ -35,6 +35,7 @@ export class PreviewOrderHandler {
         command.userId,
         command.couponCode,
         totalAmount,
+        command.couponAntiAbuseClientIp,
       );
       discount = q.discountAmount;
       appliedCoupon = q.appliedCoupon;

@@ -12,5 +12,7 @@ export class CreateOrderFromCartCommand {
     readonly clientIp?: string,
     readonly ipnUrl?: string,
     readonly couponCode?: string,
+    /** IP từ edge/proxy — coupon consume/validate; không dùng body.clientIp */
+    readonly couponAntiAbuseClientIp?: string,
   ) {}
 }

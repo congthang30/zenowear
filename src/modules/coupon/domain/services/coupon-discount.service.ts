@@ -18,6 +18,10 @@ export type AppliedCouponInfo = {
   name: string;
   type: CouponType;
   value: number;
+  /** Mỗi tài khoản tối đa dùng mã cho bao nhiêu đơn (đã consume) */
+  usagePerUser: number;
+  /** Ước tính lượt còn lại cho user hiện tại (trước đơn đang tạo) */
+  remainingUsesForUser: number;
 };
 
 export class CouponDiscountService {
@@ -66,6 +70,7 @@ export class CouponDiscountService {
     code: string,
     name: string,
     coupon: CouponLike,
+    limits: { usagePerUser: number; remainingUsesForUser: number },
   ): AppliedCouponInfo {
     return {
       id,
@@ -73,6 +78,8 @@ export class CouponDiscountService {
       name,
       type: coupon.type,
       value: coupon.value,
+      usagePerUser: limits.usagePerUser,
+      remainingUsesForUser: limits.remainingUsesForUser,
     };
   }
 }

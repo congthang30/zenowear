@@ -53,7 +53,7 @@ export class CategoryRepositoryImpl implements CategoryRepository {
             ? new Types.ObjectId(persistence.parentId)
             : null,
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

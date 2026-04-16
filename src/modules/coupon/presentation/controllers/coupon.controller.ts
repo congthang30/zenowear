@@ -6,8 +6,11 @@ import {
   HttpStatus,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -24,6 +27,7 @@ import { CouponQuoteResponseDto } from '../../application/dtos/coupon-quote-resp
 import { CouponUsageHistoryItemDto } from '../../application/dtos/coupon-usage-history.dto';
 import { ValidateCouponForUserHandler } from '../../application/quotes/validate-coupon-for-user.handler';
 import { ListMyCouponUsagesHandler } from '../../application/queries/list-my-coupon-usages/list-my-coupon-usages.handler';
+import { resolveClientIpTrusted } from '../../../../common/http/resolve-client-ip';
 
 @ApiTags('Coupon')
 @Controller('coupons')
@@ -33,7 +37,7 @@ export class CouponController {
     private readonly listUsagesHandler: ListMyCouponUsagesHandler,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ThrottlerGuard)
   @Post('validate')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
@@ -46,15 +50,18 @@ export class CouponController {
   validate(
     @CurrentUser() user: JwtAccessPayload,
     @Body() body: ValidateCouponDto,
+    @Req() req: Request,
   ): Promise<CouponQuoteResponseDto> {
+    const clientIp = resolveClientIpTrusted(req);
     return this.validateHandler.execute(
       user.userId,
       body.code,
       body.subtotalAmount,
+      clientIp,
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ThrottlerGuard)
   @Post('apply-preview')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
@@ -66,8 +73,15 @@ export class CouponController {
   applyPreview(
     @CurrentUser() user: JwtAccessPayload,
     @Body() body: ValidateCouponDto,
+    @Req() req: Request,
   ): Promise<CouponQuoteResponseDto> {
-    return this.validateHandler.execute(user.userId, body.code, undefined);
+    const clientIp = resolveClientIpTrusted(req);
+    return this.validateHandler.execute(
+      user.userId,
+      body.code,
+      undefined,
+      clientIp,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
